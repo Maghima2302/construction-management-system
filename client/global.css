@@ -152,11 +152,15 @@
 @layer components {
   /* Glassmorphism cards */
   .glass-card {
-    @apply bg-white/80 backdrop-blur-lg border border-white/20 rounded-xl shadow-lg;
+    @apply rounded-xl shadow-lg border;
+    background-color: rgba(255, 255, 255, 0.8);
+    border-color: rgba(255, 255, 255, 0.2);
+    backdrop-filter: blur(16px);
   }
 
-  .glass-card-dark {
-    @apply dark:bg-slate-900/80 dark:backdrop-blur-lg dark:border dark:border-slate-700/20;
+  :is(.dark) .glass-card {
+    background-color: rgba(15, 23, 42, 0.8);
+    border-color: rgba(71, 85, 105, 0.2);
   }
 
   /* Enterprise shadows */
@@ -170,23 +174,48 @@
 
   /* Status badges */
   .badge-success {
-    @apply bg-emerald-100 text-emerald-800 dark:bg-emerald-900/30 dark:text-emerald-300;
+    @apply bg-emerald-100 text-emerald-800;
+  }
+
+  :is(.dark) .badge-success {
+    background-color: rgba(5, 150, 105, 0.3);
+    @apply text-emerald-300;
   }
 
   .badge-warning {
-    @apply bg-amber-100 text-amber-800 dark:bg-amber-900/30 dark:text-amber-300;
+    @apply bg-amber-100 text-amber-800;
+  }
+
+  :is(.dark) .badge-warning {
+    background-color: rgba(180, 83, 9, 0.3);
+    @apply text-amber-300;
   }
 
   .badge-danger {
-    @apply bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-300;
+    @apply bg-red-100 text-red-800;
+  }
+
+  :is(.dark) .badge-danger {
+    background-color: rgba(153, 27, 27, 0.3);
+    @apply text-red-300;
   }
 
   .badge-info {
-    @apply bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-300;
+    @apply bg-blue-100 text-blue-800;
+  }
+
+  :is(.dark) .badge-info {
+    background-color: rgba(30, 58, 138, 0.3);
+    @apply text-blue-300;
   }
 
   .badge-primary {
-    @apply bg-primary/10 text-primary dark:bg-primary/20;
+    background-color: hsl(var(--primary) / 0.1);
+    @apply text-primary;
+  }
+
+  :is(.dark) .badge-primary {
+    background-color: hsl(var(--primary) / 0.2);
   }
 
   /* Smooth transitions */
