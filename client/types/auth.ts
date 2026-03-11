@@ -1,0 +1,24 @@
+export type UserRole =
+  | "SUPER_ADMIN"
+  | "PROJECT_MANAGER"
+  | "ARCHITECT"
+  | "ENGINEER"
+  | "CLIENT";
+
+export interface AuthUser {
+  id: string;
+  name: string;
+  email: string;
+  role: UserRole;
+  company: string;
+}
+
+export interface LoginCredentials {
+  email: string;
+  password: string;
+}
+
+export interface LoginResult {
+  success: boolean;
+  message: string;
+}
