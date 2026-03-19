@@ -1,9 +1,12 @@
+import { useState } from "react";
 import { Bell, Building2, LogOut, Search } from "lucide-react";
 import { Link, Outlet, useLocation } from "react-router-dom";
 import { ROLE_LABELS } from "@/constants/rbac";
 import { useAuthStore } from "@/store/authStore";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
+import AuraChatbot from "@/components/common/AuraChatbot";
+import NotificationsPanel, { MOCK_NOTIFICATIONS } from "@/components/common/NotificationsPanel";
 
 const NAV_ITEMS = [
   { to: "/dashboard", label: "Dashboard", module: "dashboard" },
@@ -26,6 +29,11 @@ const NAV_ITEMS = [
 export default function DashboardLayout() {
   const location = useLocation();
   const { user, logout, hasModuleAccess } = useAuthStore();
+  const [notifOpen, setNotifOpen] = useState(false);
+
+  const unreadCount = MOCK_NOTIFICATIONS.filter(
+    (n) => !n.isRead && n.targetRoles.includes(user?.role || ""),
+  ).length;
 
   return (
     <div className="flex min-h-screen bg-background">
@@ -74,9 +82,18 @@ export default function DashboardLayout() {
             />
           </div>
           <div className="ml-3 flex items-center gap-2">
-            <Button variant="ghost" size="icon" aria-label="Notifications">
+            <button
+              onClick={() => setNotifOpen(true)}
+              className="relative h-9 w-9 flex items-center justify-center rounded-lg hover:bg-slate-100 transition-colors"
+              aria-label="Notifications"
+            >
               <Bell size={18} />
-            </Button>
+              {unreadCount > 0 && (
+                <span className="absolute -top-0.5 -right-0.5 h-4 w-4 bg-red-500 text-white text-[9px] font-bold rounded-full flex items-center justify-center">
+                  {unreadCount}
+                </span>
+              )}
+            </button>
             <Button variant="outline" size="sm" onClick={logout} className="gap-1">
               <LogOut size={14} /> Logout
             </Button>
@@ -87,6 +104,12 @@ export default function DashboardLayout() {
           <Outlet />
         </main>
       </div>
+
+      {/* Notifications Hub — Module 17 */}
+      <NotificationsPanel isOpen={notifOpen} onClose={() => setNotifOpen(false)} />
+
+      {/* Aura AI Chatbot — globally available on all authenticated pages */}
+      <AuraChatbot context="dashboard" />
     </div>
   );
 }
