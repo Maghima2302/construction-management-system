@@ -1,87 +1,182 @@
+// Mock Clients Data — AI-CMS v3 Full Specification
+// 10 clients with full profile data
+
 export interface ClientRecord {
   id: string;
   name: string;
-  company: string;
+  contact: string;
+  email: string;
+  phone: string;
+  city: string;
   industry: string;
+  status: "Active" | "In Planning" | "Completed" | "VIP";
   activeProjects: number;
-  completedProjects: number;
-  totalBudget: number;
-  status: "Healthy" | "Needs Attention" | "At Risk";
-  requirementMaturity: number;
-  aiInsight: string;
-}
-
-export interface ClientRequirementHistory {
-  date: string;
-  topic: string;
-  confidence: number;
-  note: string;
+  totalValueCr: number;
+  aiScore: number;
+  requirements: string[];
+  joinedDate: string;
+  avatar: string;
 }
 
 export const MOCK_CLIENTS: ClientRecord[] = [
   {
-    id: "CL-201",
-    name: "Nikhil Arora",
-    company: "Apex Infra Holdings",
-    industry: "Commercial Real Estate",
-    activeProjects: 3,
-    completedProjects: 5,
-    totalBudget: 31200000,
-    status: "Healthy",
-    requirementMaturity: 92,
-    aiInsight: "High on-time probability due to stable procurement cycle.",
-  },
-  {
-    id: "CL-202",
-    name: "Ira Nair",
-    company: "UrbanNest Developments",
-    industry: "Residential",
+    id: "CLT-001",
+    name: "Apex Infra Holdings",
+    contact: "Rakesh Gupta",
+    email: "r.gupta@apexinfra.com",
+    phone: "+91-98200-11223",
+    city: "Mumbai",
+    industry: "Real Estate",
+    status: "Active",
     activeProjects: 2,
-    completedProjects: 2,
-    totalBudget: 14800000,
-    status: "Needs Attention",
-    requirementMaturity: 84,
-    aiInsight: "Design changes increased delay risk by 11% in Phase II.",
+    totalValueCr: 31.2,
+    aiScore: 94,
+    requirements: ["Sustainable design", "LEED Gold certification", "Smart building integration"],
+    joinedDate: "2024-03-15",
+    avatar: "RG",
   },
   {
-    id: "CL-203",
-    name: "Shaan Mukherjee",
-    company: "City Transit Authority",
-    industry: "Public Infrastructure",
+    id: "CLT-002",
+    name: "UrbanNest Developments",
+    contact: "Meera Patel",
+    email: "meera@urbannest.in",
+    phone: "+91-97300-44556",
+    city: "Pune",
+    industry: "Residential",
+    status: "Active",
     activeProjects: 1,
-    completedProjects: 4,
-    totalBudget: 42800000,
-    status: "Healthy",
-    requirementMaturity: 95,
-    aiInsight: "Budget adherence remains within 2.1% variance across portfolio.",
+    totalValueCr: 9.4,
+    aiScore: 86,
+    requirements: ["Affordable housing", "Green spaces", "Community amenities"],
+    joinedDate: "2025-01-10",
+    avatar: "MP",
   },
   {
-    id: "CL-204",
-    name: "Mira Deshpande",
-    company: "EcoBuild Partners",
+    id: "CLT-003",
+    name: "City Transit Authority",
+    contact: "Suresh Nambiar",
+    email: "s.nambiar@cta.gov.in",
+    phone: "+91-44-2345-6789",
+    city: "Chennai",
+    industry: "Government / Infrastructure",
+    status: "Active",
+    activeProjects: 1,
+    totalValueCr: 42.0,
+    aiScore: 94,
+    requirements: ["Government compliance", "Seismic design", "2000+ vehicle capacity"],
+    joinedDate: "2024-07-22",
+    avatar: "SN",
+  },
+  {
+    id: "CLT-004",
+    name: "GreenMfg Corp",
+    contact: "Arjun Mehrotra",
+    email: "arjun@greenmfg.com",
+    phone: "+91-40-8899-0011",
+    city: "Hyderabad",
     industry: "Industrial",
-    activeProjects: 4,
-    completedProjects: 1,
-    totalBudget: 26600000,
-    status: "At Risk",
-    requirementMaturity: 74,
-    aiInsight: "Material availability and labor volatility may affect Q3 milestones.",
+    status: "Active",
+    activeProjects: 1,
+    totalValueCr: 31.0,
+    aiScore: 88,
+    requirements: ["Zero-carbon operations", "Solar integration", "EV charging infrastructure"],
+    joinedDate: "2024-12-05",
+    avatar: "AM",
+  },
+  {
+    id: "CLT-005",
+    name: "PremiumHomes Ltd",
+    contact: "Kavita Shah",
+    email: "kavita@premiumhomes.in",
+    phone: "+91-98100-77889",
+    city: "Goa",
+    industry: "Luxury Residential",
+    status: "Active",
+    activeProjects: 1,
+    totalValueCr: 7.8,
+    aiScore: 82,
+    requirements: ["Sea-view orientation", "Italian marble finishes", "Smart home automation"],
+    joinedDate: "2025-10-18",
+    avatar: "KS",
+  },
+  {
+    id: "CLT-006",
+    name: "TechNexus Infrastructure",
+    contact: "Rohit Bansal",
+    email: "r.bansal@technexus.com",
+    phone: "+91-22-5566-7788",
+    city: "Mumbai",
+    industry: "Technology",
+    status: "Active",
+    activeProjects: 1,
+    totalValueCr: 55.0,
+    aiScore: 97,
+    requirements: ["Tier 4 data centre", "99.999% uptime design", "Green cooling"],
+    joinedDate: "2025-11-30",
+    avatar: "RB",
+  },
+  {
+    id: "CLT-007",
+    name: "Apollo Health Group",
+    contact: "Dr. Sana Mirza",
+    email: "sana.m@apollohealth.in",
+    phone: "+91-11-4567-8901",
+    city: "Delhi",
+    industry: "Healthcare",
+    status: "VIP",
+    activeProjects: 1,
+    totalValueCr: 22.0,
+    aiScore: 99,
+    requirements: ["NABH compliance", "Infection control design", "300-bed expansion"],
+    joinedDate: "2023-06-01",
+    avatar: "SM",
+  },
+  {
+    id: "CLT-008",
+    name: "EduFirst Foundation",
+    contact: "Renu Prakash",
+    email: "renu@edufirst.org",
+    phone: "+91-422-2345-678",
+    city: "Coimbatore",
+    industry: "Education",
+    status: "Completed",
+    activeProjects: 0,
+    totalValueCr: 5.2,
+    aiScore: 95,
+    requirements: ["Child-safe design", "Natural lighting", "3000 student capacity"],
+    joinedDate: "2023-09-12",
+    avatar: "RP",
+  },
+  {
+    id: "CLT-009",
+    name: "Sunrise Hospitality Group",
+    contact: "Vikash Choudhary",
+    email: "vikash@sunrisehg.com",
+    phone: "+91-98300-22334",
+    city: "Jaipur",
+    industry: "Hospitality",
+    status: "In Planning",
+    activeProjects: 0,
+    totalValueCr: 0,
+    aiScore: 0,
+    requirements: ["Heritage-style architecture", "200-room 5-star hotel", "Spa and pool"],
+    joinedDate: "2026-02-14",
+    avatar: "VC",
+  },
+  {
+    id: "CLT-010",
+    name: "Metro Retail Chains",
+    contact: "Priya Sharma",
+    email: "priya.s@metroretail.in",
+    phone: "+91-97200-55667",
+    city: "Bengaluru",
+    industry: "Retail",
+    status: "In Planning",
+    activeProjects: 0,
+    totalValueCr: 0,
+    aiScore: 0,
+    requirements: ["20 store fit-outs", "Uniform brand design", "Rapid delivery timeline"],
+    joinedDate: "2026-03-01",
+    avatar: "PS",
   },
 ];
-
-export const MOCK_CLIENT_REQUIREMENT_HISTORY: Record<string, ClientRequirementHistory[]> = {
-  "CL-201": [
-    { date: "2026-01-08", topic: "Facade material preference", confidence: 93, note: "Shift to low-E glass accepted." },
-    { date: "2026-02-14", topic: "Parking allocation update", confidence: 89, note: "Basement layout revised for EV slots." },
-  ],
-  "CL-202": [
-    { date: "2026-01-25", topic: "Community clubhouse redesign", confidence: 81, note: "Additional co-working floor requested." },
-    { date: "2026-03-01", topic: "Budget cap alignment", confidence: 79, note: "Value engineering suggestions pending approval." },
-  ],
-  "CL-203": [
-    { date: "2025-12-18", topic: "Safety compliance controls", confidence: 96, note: "All fire and evacuation standards captured." },
-  ],
-  "CL-204": [
-    { date: "2026-02-20", topic: "Sustainability target", confidence: 72, note: "Carbon target under review with vendor alternatives." },
-  ],
-};
