@@ -5,6 +5,7 @@ import ProtectedRoute from "@/routes/ProtectedRoute";
 import ModuleGuard from "@/routes/ModuleGuard";
 import RoleDashboardRedirect from "@/routes/RoleDashboardRedirect";
 import LoginPage from "@/features/auth/pages/LoginPage";
+import RegisterPage from "@/features/auth/pages/RegisterPage";
 import UnauthorizedPage from "@/features/auth/pages/UnauthorizedPage";
 import RoleDashboardPage from "@/features/dashboard/pages/RoleDashboardPage";
 import ClientsPage from "@/features/clients/pages/ClientsPage";
@@ -39,6 +40,7 @@ export function AppRoutes() {
     <Routes>
       <Route element={<AuthLayout />}>
         <Route path="/login" element={<LoginPage />} />
+        <Route path="/register" element={<RegisterPage />} />
       </Route>
 
       <Route path="/unauthorized" element={<UnauthorizedPage />} />

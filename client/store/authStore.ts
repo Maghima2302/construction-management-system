@@ -2,12 +2,16 @@ import { create } from "zustand";
 import { persist } from "zustand/middleware";
 import { DASHBOARD_PATH_BY_ROLE, MODULE_PERMISSIONS } from "@/constants/rbac";
 import { DEMO_USERS } from "@/constants/mockAuth";
-import { AuthUser, LoginCredentials, LoginResult, UserRole } from "@/types/auth";
+import { AuthSession, AuthUser, LoginCredentials, LoginResult, UserRole } from "@/types/auth";
 
 interface AuthState {
   user: AuthUser | null;
   token: string | null;
+  refreshToken: string | null;
+  tokenType: string | null;
+  expiresIn: number | null;
   isAuthenticated: boolean;
+  setSession: (session: AuthSession) => void;
   login: (credentials: LoginCredentials) => LoginResult;
   logout: () => void;
   hasModuleAccess: (moduleKey: string) => boolean;
@@ -19,7 +23,22 @@ export const useAuthStore = create<AuthState>()(
     (set, get) => ({
       user: null,
       token: null,
+      refreshToken: null,
+      tokenType: null,
+      expiresIn: null,
       isAuthenticated: false,
+      setSession: (session) => {
+        set({
+          user: session.user,
+          token: session.accessToken,
+          refreshToken: session.refreshToken,
+          tokenType: session.tokenType,
+          expiresIn: session.expiresIn,
+          isAuthenticated: true,
+        });
+
+        localStorage.setItem("cms-auth-response", JSON.stringify(session.rawResponse));
+      },
       login: ({ email, password }) => {
         const matched = DEMO_USERS.find(
           (record) => record.user.email === email.trim().toLowerCase() && record.password === password,
@@ -41,7 +60,15 @@ export const useAuthStore = create<AuthState>()(
         return { success: true, message: "Login successful." };
       },
       logout: () => {
-        set({ user: null, token: null, isAuthenticated: false });
+        set({
+          user: null,
+          token: null,
+          refreshToken: null,
+          tokenType: null,
+          expiresIn: null,
+          isAuthenticated: false,
+        });
+        localStorage.removeItem("cms-auth-response");
       },
       hasModuleAccess: (moduleKey) => {
         const role = get().user?.role;
@@ -68,6 +95,9 @@ export const useAuthStore = create<AuthState>()(
           return {
             user: null,
             token: null,
+            refreshToken: null,
+            tokenType: null,
+            expiresIn: null,
             isAuthenticated: false,
           } as AuthState;
         }
