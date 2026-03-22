@@ -2,6 +2,7 @@ import { create } from "zustand";
 import { persist } from "zustand/middleware";
 import { DASHBOARD_PATH_BY_ROLE, MODULE_PERMISSIONS } from "@/constants/rbac";
 import { DEMO_USERS } from "@/constants/mockAuth";
+import { authService } from "@/services/authService";
 import { AuthSession, AuthUser, LoginCredentials, LoginResult, UserRole } from "@/types/auth";
 
 interface AuthState {
@@ -12,6 +13,7 @@ interface AuthState {
   expiresIn: number | null;
   isAuthenticated: boolean;
   setSession: (session: AuthSession) => void;
+  clearSession: () => void;
   login: (credentials: LoginCredentials) => LoginResult;
   logout: () => void;
   hasModuleAccess: (moduleKey: string) => boolean;
@@ -39,6 +41,17 @@ export const useAuthStore = create<AuthState>()(
 
         localStorage.setItem("cms-auth-response", JSON.stringify(session.rawResponse));
       },
+      clearSession: () => {
+        set({
+          user: null,
+          token: null,
+          refreshToken: null,
+          tokenType: null,
+          expiresIn: null,
+          isAuthenticated: false,
+        });
+        localStorage.removeItem("cms-auth-response");
+      },
       login: ({ email, password }) => {
         const matched = DEMO_USERS.find(
           (record) => record.user.email === email.trim().toLowerCase() && record.password === password,
@@ -60,15 +73,15 @@ export const useAuthStore = create<AuthState>()(
         return { success: true, message: "Login successful." };
       },
       logout: () => {
-        set({
-          user: null,
-          token: null,
-          refreshToken: null,
-          tokenType: null,
-          expiresIn: null,
-          isAuthenticated: false,
-        });
-        localStorage.removeItem("cms-auth-response");
+        const refreshToken = get().refreshToken;
+
+        if (refreshToken) {
+          void authService.logout({ refreshToken }).catch(() => {
+            // Always clear local session even if server logout fails.
+          });
+        }
+
+        get().clearSession();
       },
       hasModuleAccess: (moduleKey) => {
         const role = get().user?.role;
@@ -109,7 +122,7 @@ export const useAuthStore = create<AuthState>()(
       },
       onRehydrateStorage: () => (state) => {
         if (!state?.user || !state?.token) {
-          state?.logout();
+          state?.clearSession();
         }
       },
     },

@@ -13,6 +13,10 @@ interface ApiRegisterRequest {
   role: "SUPER_ADMIN" | "PROJECT_MANAGER" | "CLIENT" | "ARCHITECT" | "CIVIL_ENGINEER";
 }
 
+interface ApiLogoutRequest {
+  refreshToken: string;
+}
+
 interface LoginResponse {
   accessToken: string;
   refreshToken: string;
@@ -138,6 +142,16 @@ export const authService = {
       throw new Error(getErrorMessage(error, "Registration failed. Please try again."));
     }
   },
+
+  async logout(payload: ApiLogoutRequest): Promise<void> {
+    try {
+      await api.post("/auth/logout", {
+        refresh_token: payload.refreshToken,
+      });
+    } catch (error: unknown) {
+      throw new Error(getErrorMessage(error, "Logout failed. Please try again."));
+    }
+  },
 };
 
-export type { ApiLoginRequest, ApiRegisterRequest, LoginResponse, AuthSession };
+export type { ApiLoginRequest, ApiRegisterRequest, ApiLogoutRequest, LoginResponse, AuthSession };
