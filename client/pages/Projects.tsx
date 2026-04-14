@@ -1,12 +1,14 @@
 import { PlaceholderPage } from "@/components/PlaceholderPage";
-import { FolderOpen } from "lucide-react";
+import { HardHat } from "lucide-react";
+
 
 export default function Projects() {
   return (
     <PlaceholderPage
-      title="Project Management"
-      description="View, manage, and track all your construction and architecture projects in one centralized location with detailed progress tracking, resource allocation, and timeline management."
-      icon={<FolderOpen size={48} />}
+      title="My Projects"
+      description="List of all projects (ongoing, completed, pending) with status badges. Track every detail of your construction journey from inception to completion."
+      icon={<HardHat size={48} />}
     />
   );
 }
+

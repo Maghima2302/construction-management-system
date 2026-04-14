@@ -14,8 +14,14 @@ import {
   ChevronLeft,
   ChevronRight,
   Building2,
+  HardHat,
+  CheckCircle2,
+  Bell,
+  Bot,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { useAuthStore } from "@/store/authStore";
+import { UserRole } from "@/types/auth";
 
 interface NavItem {
   name: string;
@@ -23,7 +29,7 @@ interface NavItem {
   href: string;
 }
 
-const navItems: NavItem[] = [
+const defaultNavItems: NavItem[] = [
   { name: "Dashboard", icon: <LayoutDashboard size={20} />, href: "/" },
   { name: "Clients", icon: <Users size={20} />, href: "/clients" },
   { name: "Projects", icon: <FolderOpen size={20} />, href: "/projects" },
@@ -36,14 +42,42 @@ const navItems: NavItem[] = [
   { name: "Settings", icon: <Settings size={20} />, href: "/settings" },
 ];
 
+const clientNavItems: NavItem[] = [
+  { name: "Dashboard", icon: <LayoutDashboard size={20} />, href: "/" },
+  { name: "Projects", icon: <HardHat size={20} />, href: "/projects" },
+  { name: "Project Timeline", icon: <Calendar size={20} />, href: "/scheduling" },
+  { name: "Approvals", icon: <CheckCircle2 size={20} />, href: "/approvals" },
+  { name: "Documents", icon: <FileText size={20} />, href: "/documents" },
+  { name: "Budget & Costs", icon: <DollarSign size={20} />, href: "/costs" },
+  { name: "Messages", icon: <MessageSquare size={20} />, href: "/messages" },
+  { name: "Notifications", icon: <Bell size={20} />, href: "/notifications" },
+  { name: "AI Assistant (AURA)", icon: <Bot size={20} />, href: "/ai-assistant" },
+  { name: "Reports", icon: <BarChart3 size={20} />, href: "/reports" },
+  { name: "Settings", icon: <Settings size={20} />, href: "/settings" },
+];
+
+const navItemsByRole: Partial<Record<UserRole, NavItem[]>> = {
+  CLIENT: clientNavItems,
+  SUPER_ADMIN: defaultNavItems,
+  PROJECT_MANAGER: defaultNavItems,
+  ARCHITECT: defaultNavItems,
+  ENGINEER: defaultNavItems,
+};
+
 export const Sidebar = () => {
   const [isOpen, setIsOpen] = useState(true);
   const location = useLocation();
+  const { user } = useAuthStore();
+  const role = user?.role as UserRole;
+
+  const items = role === "CLIENT"
+    ? clientNavItems
+    : navItemsByRole[role] || defaultNavItems;
 
   return (
     <div
       className={cn(
-        "fixed left-0 top-0 h-screen bg-primary text-primary-foreground transition-all duration-300 ease-out",
+        "fixed left-0 top-0 h-screen bg-primary text-primary-foreground transition-all duration-300 ease-out z-50",
         isOpen ? "w-64" : "w-20"
       )}
       style={{
@@ -71,12 +105,13 @@ export const Sidebar = () => {
       </div>
 
       {/* Navigation Items */}
-      <nav className="flex-1 px-3 py-8">
+      <nav className="flex-1 px-3 py-8 overflow-y-auto">
         <ul className="space-y-2">
-          {navItems.map((item) => {
+          {items.map((item) => {
             const isActive = location.pathname === item.href;
+
             return (
-              <li key={item.href}>
+              <li key={item.name + item.href}>
                 <Link
                   to={item.href}
                   className={cn(
@@ -88,7 +123,7 @@ export const Sidebar = () => {
                   title={!isOpen ? item.name : undefined}
                 >
                   {item.icon}
-                  {isOpen && <span>{item.name}</span>}
+                  {isOpen && <span className="truncate">{item.name}</span>}
                 </Link>
               </li>
             );
@@ -107,3 +142,4 @@ export const Sidebar = () => {
     </div>
   );
 };
+

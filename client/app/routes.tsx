@@ -5,12 +5,14 @@ import ProtectedRoute from "@/routes/ProtectedRoute";
 import ModuleGuard from "@/routes/ModuleGuard";
 import RoleDashboardRedirect from "@/routes/RoleDashboardRedirect";
 import LoginPage from "@/features/auth/pages/LoginPage";
+import RegisterPage from "@/features/auth/pages/RegisterPage";
 import UnauthorizedPage from "@/features/auth/pages/UnauthorizedPage";
 import RoleDashboardPage from "@/features/dashboard/pages/RoleDashboardPage";
 import ClientsPage from "@/features/clients/pages/ClientsPage";
 import ClientProfilePage from "@/features/clients/pages/ClientProfilePage";
 import ProjectsPage from "@/features/projects/pages/ProjectsPage";
 import ProjectDetailsPage from "@/features/projects/pages/ProjectDetailsPage";
+import { ProjectMilestonesPage } from "@/features/projects/pages/ProjectMilestonesPage";
 import CreateProjectPage from "@/features/projects/pages/CreateProjectPage";
 import AIInterviewPage from "@/features/ai-interview/pages/AIInterviewPage";
 import AIInterviewHistoryPage from "@/features/ai-interview/pages/AIInterviewHistoryPage";
@@ -33,12 +35,22 @@ import SupplierDetailsPage from "@/features/suppliers/pages/SupplierDetailsPage"
 import WorkforcePage from "@/features/workforce/pages/WorkforcePage";
 import ConstructionKnowledgePage from "@/features/construction-knowledge/pages/ConstructionKnowledgePage";
 import NotFound from "@/pages/NotFound";
+import AIAssistant from "@/pages/AIAssistant";
+import Approvals from "@/pages/Approvals";
+import Costs from "@/pages/Costs";
+import Documents from "@/pages/Documents";
+import Messages from "@/pages/Messages";
+import Notifications from "@/pages/Notifications";
+import Reports from "@/pages/Reports";
+import Scheduling from "@/pages/Scheduling";
+import Settings from "@/pages/Settings";
 
 export function AppRoutes() {
   return (
     <Routes>
       <Route element={<AuthLayout />}>
         <Route path="/login" element={<LoginPage />} />
+        <Route path="/register" element={<RegisterPage />} />
       </Route>
 
       <Route path="/unauthorized" element={<UnauthorizedPage />} />
@@ -71,10 +83,26 @@ export function AppRoutes() {
             }
           />
           <Route
+            path="/projects/milestones"
+            element={
+              <ModuleGuard moduleKey="projects">
+                <ProjectMilestonesPage />
+              </ModuleGuard>
+            }
+          />
+          <Route
             path="/projects/:id"
             element={
               <ModuleGuard moduleKey="projects">
                 <ProjectDetailsPage />
+              </ModuleGuard>
+            }
+          />
+          <Route
+            path="/projects/:projectId/milestones"
+            element={
+              <ModuleGuard moduleKey="projects">
+                <ProjectMilestonesPage />
               </ModuleGuard>
             }
           />
@@ -262,6 +290,17 @@ export function AppRoutes() {
               </ModuleGuard>
             }
           />
+
+          {/* New Sidebar Routes */}
+          <Route path="/scheduling" element={<Scheduling />} />
+          <Route path="/approvals" element={<Approvals />} />
+          <Route path="/documents" element={<Documents />} />
+          <Route path="/costs" element={<Costs />} />
+          <Route path="/messages" element={<Messages />} />
+          <Route path="/notifications" element={<Notifications />} />
+          <Route path="/ai-assistant" element={<AIAssistant />} />
+          <Route path="/reports" element={<Reports />} />
+          <Route path="/settings" element={<Settings />} />
         </Route>
       </Route>
 

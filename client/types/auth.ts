@@ -10,7 +10,17 @@ export interface AuthUser {
   name: string;
   email: string;
   role: UserRole;
-  company: string;
+  company?: string;
+  createdAt?: string;
+}
+
+export interface AuthSession {
+  accessToken: string;
+  refreshToken: string;
+  tokenType: string;
+  expiresIn: number;
+  user: AuthUser;
+  rawResponse: Record<string, unknown>;
 }
 
 export interface LoginCredentials {

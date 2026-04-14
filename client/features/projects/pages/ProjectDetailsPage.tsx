@@ -1,481 +1,180 @@
 import { useState } from "react";
-import { useParams, Link } from "react-router-dom";
+import { Link, useParams } from "react-router-dom";
 import {
   ArrowLeft,
   Building2,
   MapPin,
   Calendar,
-  Users,
-  TrendingUp,
-  TrendingDown,
-  CheckCircle2,
-  AlertTriangle,
-  Clock,
   FileText,
   DollarSign,
-  Shield,
   Activity,
-  Download,
-  Share2,
-  Edit,
-  ChevronRight,
   Sparkles,
   Target,
+  Flag,
+  AlertTriangle,
+  CheckCircle2,
+  Clock,
 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import AnalyticsChart from "@/components/charts/AnalyticsChart";
-import { MOCK_PROJECTS, ProjectRecord, ProjectMilestone } from "@/constants/mockProjects";
-import { useAuthStore } from "@/store/authStore";
-import { cn } from "@/lib/utils";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { useMyProjectDetail } from "@/hooks/useMyProjectDetail";
+import { useMilestones } from "@/hooks/useMilestones";
 
-// ── Mini components ───────────────────────────────────────────────────────────
-
-const MILESTONE_STATUS = {
-  Completed: { color: "bg-emerald-100 text-emerald-700 border-emerald-200", icon: CheckCircle2, bar: "bg-emerald-500" },
-  "In Progress": { color: "bg-blue-100 text-blue-700 border-blue-200", icon: Activity, bar: "bg-blue-500" },
-  Pending: { color: "bg-slate-100 text-slate-500 border-slate-200", icon: Clock, bar: "bg-slate-300" },
-  Delayed: { color: "bg-red-100 text-red-700 border-red-200", icon: AlertTriangle, bar: "bg-red-500" },
+const milestoneStatusStyles: Record<string, string> = {
+  COMPLETED: "bg-green-50 text-green-700 border-green-200",
+  IN_PROGRESS: "bg-blue-50 text-blue-700 border-blue-200",
+  DELAYED: "bg-red-50 text-red-700 border-red-200",
+  PENDING: "bg-gray-50 text-gray-700 border-gray-200",
 };
 
-function MilestoneRow({ milestone }: { milestone: ProjectMilestone }) {
-  const s = MILESTONE_STATUS[milestone.status];
-  const Icon = s.icon;
-  return (
-    <div className="flex items-center gap-4 p-4 bg-white border border-slate-200 rounded-xl hover:border-[hsl(25,99%,55%)]/30 transition-colors">
-      <div className={cn("h-8 w-8 rounded-lg flex items-center justify-center shrink-0 border", s.color)}>
-        <Icon size={14} />
-      </div>
-      <div className="flex-1 min-w-0">
-        <p className="text-sm font-medium text-foreground">{milestone.name}</p>
-        {milestone.owner && <p className="text-xs text-muted-foreground mt-0.5">Owner: {milestone.owner}</p>}
-      </div>
-      <div className="w-32 shrink-0">
-        <div className="flex items-center gap-2">
-          <div className="flex-1 h-1.5 bg-slate-100 rounded-full">
-            <div className={cn("h-full rounded-full", s.bar)} style={{ width: `${milestone.completion}%` }} />
-          </div>
-          <span className="text-xs font-medium w-8 text-right">{milestone.completion}%</span>
-        </div>
-      </div>
-      <div className="text-right shrink-0 w-28">
-        <p className="text-xs text-muted-foreground">Due</p>
-        <p className="text-xs font-medium">{new Date(milestone.dueDate).toLocaleDateString("en-IN", { day: "numeric", month: "short", year: "2-digit" })}</p>
-      </div>
-      <Badge className={cn("shrink-0 text-[10px] border", s.color)}>{milestone.status}</Badge>
-    </div>
-  );
+function formatDate(value: string) {
+  if (!value) {
+    return "-";
+  }
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) {
+    return value;
+  }
+  return date.toLocaleDateString();
 }
-
-// ── Tab content components ───────────────────────────────────────────────────
-
-function OverviewTab({ project }: { project: ProjectRecord }) {
-  const progressData = [
-    { month: "Sep 25", progress: 18, planned: 22 },
-    { month: "Oct 25", progress: 31, planned: 35 },
-    { month: "Nov 25", progress: 44, planned: 47 },
-    { month: "Dec 25", progress: 54, planned: 57 },
-    { month: "Jan 26", progress: 62, planned: 64 },
-    { month: "Feb 26", progress: project.completion, planned: Math.min(project.completion + 4, 100) },
-  ];
-  const budgetData = project.milestones.map((m) => ({
-    phase: m.name.length > 16 ? m.name.slice(0, 16) + "…" : m.name,
-    planned: Math.round(project.budgetPlanned / project.milestones.length / 100000),
-    actual: Math.round((project.budgetActual * (m.completion / 100)) / project.milestones.length / 100000),
-  }));
-
-  const budgetVariance = ((project.budgetActual - project.budgetPlanned) / project.budgetPlanned) * 100;
-  const activities = [
-    { icon: "✅", text: `${project.milestones.find(m => m.status === "In Progress")?.name || "Facade milestone"} — progress update recorded`, time: "2 min ago" },
-    { icon: "🤖", text: "AI health score updated based on latest site data", time: "1 hr ago" },
-    { icon: "📄", text: "Monthly progress report auto-generated by Aura AI", time: "3 hrs ago" },
-    { icon: "👤", text: "Rahul Khanna updated milestone completion percentage", time: "5 hrs ago" },
-    { icon: "⚠️", text: "Risk monitoring alert acknowledged by site engineer", time: "Yesterday" },
-  ];
-
-  return (
-    <div className="space-y-6">
-      <div className="grid gap-6 lg:grid-cols-2">
-        <Card>
-          <CardHeader><CardTitle className="text-sm">Progress — Planned vs Actual</CardTitle></CardHeader>
-          <CardContent>
-            <AnalyticsChart data={progressData} xKey="month" yKey="progress" mode="line" />
-          </CardContent>
-        </Card>
-        <Card>
-          <CardHeader><CardTitle className="text-sm">Budget by Phase (₹L)</CardTitle></CardHeader>
-          <CardContent>
-            <AnalyticsChart data={budgetData} xKey="phase" yKey="actual" mode="bar" />
-          </CardContent>
-        </Card>
-      </div>
-
-      <div className="grid gap-6 lg:grid-cols-3">
-        {/* Team card */}
-        <Card>
-          <CardHeader className="pb-3">
-            <CardTitle className="text-sm flex items-center gap-2">
-              <Users size={14} /> Assigned Team
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-2">
-            {project.assignedTeam.map((member) => {
-              const [role, name] = member.split(": ");
-              return (
-                <div key={member} className="flex items-center gap-3 p-2.5 bg-slate-50 rounded-lg">
-                  <div className="h-7 w-7 rounded-full bg-[hsl(213,65%,18%)] flex items-center justify-center text-white text-[11px] font-medium shrink-0">
-                    {name?.split(" ").map((n) => n[0]).join("").slice(0, 2) || "U"}
-                  </div>
-                  <div>
-                    <p className="text-xs font-medium">{name}</p>
-                    <p className="text-[10px] text-muted-foreground">{role}</p>
-                  </div>
-                </div>
-              );
-            })}
-          </CardContent>
-        </Card>
-
-        {/* AI Health Summary */}
-        <Card className="bg-gradient-to-br from-[hsl(213,65%,18%)] to-[hsl(213,65%,25%)] text-white border-0">
-          <CardHeader className="pb-3">
-            <CardTitle className="text-sm flex items-center gap-2 text-white/90">
-              <Sparkles size={14} /> Aura AI Health Summary
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-3 text-sm text-white/80">
-            <p>• Project is <strong className="text-white">{project.completion >= 70 ? "on pace" : "slightly behind"}</strong> with {project.completion}% completion vs {Math.min(project.completion + 4, 100)}% target</p>
-            <p>• Risk score of <strong className="text-white">{project.riskScore}/100</strong> is {project.riskScore <= 30 ? "Low — no active interventions needed" : project.riskScore <= 55 ? "Medium — monitor critical path" : "High — immediate mitigation required"}</p>
-            <p>• Budget is {Math.abs(budgetVariance).toFixed(1)}% {budgetVariance > 0 ? "over" : "under"} plan — <strong className="text-white">{budgetVariance > 2 ? "flag for review" : "within tolerance"}</strong></p>
-            <Button size="sm" variant="outline" className="w-full mt-2 border-white/20 text-white hover:bg-white/10">
-              Regenerate Summary
-            </Button>
-          </CardContent>
-        </Card>
-
-        {/* Recent Activity */}
-        <Card>
-          <CardHeader className="pb-3">
-            <CardTitle className="text-sm flex items-center gap-2">
-              <Activity size={14} /> Recent Activity
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-2.5">
-              {activities.map((a, i) => (
-                <div key={i} className="flex items-start gap-2.5">
-                  <span className="text-sm mt-0.5 shrink-0">{a.icon}</span>
-                  <div className="flex-1 min-w-0">
-                    <p className="text-xs text-foreground leading-tight">{a.text}</p>
-                    <p className="text-[10px] text-muted-foreground mt-0.5">{a.time}</p>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </CardContent>
-        </Card>
-      </div>
-    </div>
-  );
-}
-
-function MilestonesTab({ project }: { project: ProjectRecord }) {
-  const { user } = useAuthStore();
-  const canEdit = user?.role === "SUPER_ADMIN" || user?.role === "PROJECT_MANAGER";
-  return (
-    <div className="space-y-4">
-      <div className="flex items-center justify-between">
-        <p className="text-sm text-muted-foreground">{project.milestones.filter(m => m.status === "Completed").length} of {project.milestones.length} milestones completed</p>
-        {canEdit && (
-          <Button size="sm" className="bg-[hsl(25,99%,55%)] text-white hover:bg-[hsl(25,99%,48%)] gap-2">
-            <Target size={14} /> Add Milestone
-          </Button>
-        )}
-      </div>
-      <div className="space-y-3">
-        {project.milestones.map((milestone) => (
-          <MilestoneRow key={milestone.name} milestone={milestone} />
-        ))}
-      </div>
-    </div>
-  );
-}
-
-function DocumentsTab() {
-  const docs = [
-    { name: "Structural Design Drawings v3.1", type: "PDF", size: "14.2 MB", uploadedBy: "Neha Kapoor", date: "Mar 18, 2026", version: "v3.1" },
-    { name: "Soil Investigation Report", type: "PDF", size: "3.8 MB", uploadedBy: "Vikram Sethi", date: "Mar 14, 2026", version: "v2" },
-    { name: "Bill of Quantities — Phase 2", type: "XLSX", size: "1.2 MB", uploadedBy: "Rahul Khanna", date: "Mar 10, 2026", version: "v4" },
-    { name: "Project Specification Manual", type: "PDF", size: "22.1 MB", uploadedBy: "Admin", date: "Feb 28, 2026", version: "v1" },
-    { name: "AI Requirement Document", type: "PDF", size: "0.9 MB", uploadedBy: "AI Aura", date: "Jun 10, 2025", version: "v1" },
-  ];
-  return (
-    <div className="space-y-4">
-      <div className="border-2 border-dashed border-slate-200 rounded-xl p-8 text-center hover:border-[hsl(25,99%,55%)]/40 transition-colors cursor-pointer">
-        <FileText size={32} className="mx-auto text-muted-foreground mb-2" />
-        <p className="text-sm font-medium">Drag & drop files here</p>
-        <p className="text-xs text-muted-foreground mt-1">PDF, DWG, DXF, XLSX supported · Max 100MB</p>
-        <Button size="sm" variant="outline" className="mt-3">Browse Files</Button>
-      </div>
-      <div className="space-y-2">
-        {docs.map((doc) => (
-          <div key={doc.name} className="flex items-center gap-4 px-4 py-3 bg-white border border-slate-200 rounded-xl hover:shadow-sm">
-            <div className="h-9 w-9 rounded-lg bg-blue-50 flex items-center justify-center text-blue-600 text-[10px] font-bold shrink-0">{doc.type}</div>
-            <div className="flex-1 min-w-0">
-              <p className="text-sm font-medium truncate">{doc.name}</p>
-              <p className="text-xs text-muted-foreground">{doc.uploadedBy} · {doc.date} · {doc.size}</p>
-            </div>
-            <Badge variant="outline" className="text-[10px] shrink-0">{doc.version}</Badge>
-            <Button size="sm" variant="ghost" className="shrink-0"><Download size={14} /></Button>
-          </div>
-        ))}
-      </div>
-    </div>
-  );
-}
-
-function RiskTab({ project }: { project: ProjectRecord }) {
-  const riskItems = [
-    { factor: "Weather Impact", probability: "Medium", impact: "High", score: project.riskScore, owner: "PM", mitigation: "Schedule weather buffer + pre-order covers" },
-    { factor: "Material Supply", probability: "Low", impact: "Medium", score: Math.round(project.riskScore * 0.6), owner: "Engineer", mitigation: "Multi-supplier prequalification" },
-    { factor: "Labour Availability", probability: "Medium", impact: "Medium", score: Math.round(project.riskScore * 0.7), owner: "PM", mitigation: "Subcontractor standby agreements" },
-  ];
-  const riskColor = project.riskScore <= 30 ? "text-emerald-600" : project.riskScore <= 55 ? "text-amber-600" : "text-red-600";
-  const riskBg = project.riskScore <= 30 ? "bg-emerald-50" : project.riskScore <= 55 ? "bg-amber-50" : "bg-red-50";
-
-  return (
-    <div className="space-y-6">
-      <div className="grid grid-cols-3 gap-4">
-        <Card className={riskBg}>
-          <CardContent className="p-4 text-center">
-            <p className={cn("text-3xl font-bold", riskColor)}>{project.riskScore}</p>
-            <p className="text-xs text-muted-foreground">Overall Risk Score</p>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardContent className="p-4 text-center">
-            <p className="text-3xl font-bold text-[hsl(25,99%,55%)]">{project.delayRisk}%</p>
-            <p className="text-xs text-muted-foreground">Delay Probability</p>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardContent className="p-4 text-center">
-            <p className="text-3xl font-bold text-foreground">{riskItems.length}</p>
-            <p className="text-xs text-muted-foreground">Open Risk Items</p>
-          </CardContent>
-        </Card>
-      </div>
-
-      <Card className="bg-gradient-to-br from-[hsl(213,65%,18%)]/5 to-transparent border-[hsl(213,65%,18%)]/20">
-        <CardHeader className="pb-3">
-          <CardTitle className="text-sm flex items-center gap-2">
-            <Sparkles size={14} className="text-[hsl(25,99%,55%)]" /> AI Risk Narrative
-          </CardTitle>
-        </CardHeader>
-        <CardContent className="text-sm text-muted-foreground leading-relaxed">
-          Project risk level is <strong className={riskColor}>{project.riskScore <= 30 ? "Low" : project.riskScore <= 55 ? "Medium" : "High"}</strong> with score {project.riskScore}/100.
-          Key drivers include weather sensitivity (monsoon season impact on facade work) and labour scheduling pressure.
-          Recommend weekly risk review and maintaining 8-day schedule float on critical path.
-          {project.riskScore > 50 && " Immediate escalation recommended to project steering committee."}
-        </CardContent>
-      </Card>
-
-      <Card>
-        <CardHeader><CardTitle className="text-sm">Risk Register</CardTitle></CardHeader>
-        <CardContent>
-          <div className="space-y-3">
-            {riskItems.map((risk) => (
-              <div key={risk.factor} className="flex items-start gap-4 p-3 border border-slate-200 rounded-lg">
-                <div className={cn("h-7 w-7 rounded-full flex items-center justify-center text-xs font-bold shrink-0",
-                  risk.score <= 30 ? "bg-emerald-100 text-emerald-700" : risk.score <= 50 ? "bg-amber-100 text-amber-700" : "bg-red-100 text-red-700"
-                )}>{risk.score}</div>
-                <div className="flex-1">
-                  <p className="text-sm font-medium">{risk.factor}</p>
-                  <p className="text-xs text-muted-foreground mt-0.5">{risk.mitigation}</p>
-                  <div className="flex gap-2 mt-1.5">
-                    <Badge variant="outline" className="text-[10px]">P: {risk.probability}</Badge>
-                    <Badge variant="outline" className="text-[10px]">I: {risk.impact}</Badge>
-                    <Badge variant="outline" className="text-[10px]">Owner: {risk.owner}</Badge>
-                  </div>
-                </div>
-              </div>
-            ))}
-          </div>
-        </CardContent>
-      </Card>
-    </div>
-  );
-}
-
-function FinancialsTab({ project }: { project: ProjectRecord }) {
-  const { user } = useAuthStore();
-  const canView = user?.role !== "ARCHITECT" && user?.role !== "ENGINEER";
-  if (!canView) return <div className="py-16 text-center text-muted-foreground">You don't have access to financial details.</div>;
-
-  const budgetVariance = project.budgetActual - project.budgetPlanned;
-  const variancePct = (budgetVariance / project.budgetPlanned) * 100;
-  const phases = project.milestones.map((m, i) => ({
-    phase: m.name,
-    planned: Math.round(project.budgetPlanned / project.milestones.length / 100000),
-    actual: Math.round((project.budgetActual * (m.completion / 100)) / project.milestones.length / 100000),
-    variance: ((m.completion / 100) - (1 / project.milestones.length)) / (1 / project.milestones.length) * 5,
-  }));
-
-  return (
-    <div className="space-y-6">
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-        {[
-          { label: "Planned Budget", value: `₹${(project.budgetPlanned / 10000000).toFixed(1)}Cr` },
-          { label: "Actual Spent", value: `₹${(project.budgetActual / 10000000).toFixed(1)}Cr` },
-          { label: "Variance", value: `${variancePct > 0 ? "+" : ""}${variancePct.toFixed(1)}%`, color: variancePct > 0 ? "text-red-600" : "text-emerald-600" },
-          { label: "Utilisation", value: `${Math.round((project.budgetActual / project.budgetPlanned) * 100)}%` },
-        ].map(({ label, value, color }) => (
-          <Card key={label}>
-            <CardContent className="p-4">
-              <p className="text-xs text-muted-foreground">{label}</p>
-              <p className={cn("text-xl font-bold mt-1", color)}>{value}</p>
-            </CardContent>
-          </Card>
-        ))}
-      </div>
-
-      <Card>
-        <CardHeader><CardTitle className="text-sm">Budget by Phase</CardTitle></CardHeader>
-        <CardContent>
-          <div className="divide-y divide-slate-100">
-            <div className="flex items-center gap-4 py-2 text-[11px] font-semibold text-muted-foreground uppercase">
-              <div className="flex-1">Phase</div>
-              <div className="w-24 text-right">Planned (₹L)</div>
-              <div className="w-24 text-right">Actual (₹L)</div>
-              <div className="w-20 text-right">Variance</div>
-            </div>
-            {phases.map((p) => (
-              <div key={p.phase} className="flex items-center gap-4 py-3 text-sm">
-                <div className="flex-1 text-xs">{p.phase}</div>
-                <div className="w-24 text-right text-xs font-medium">{p.planned}L</div>
-                <div className="w-24 text-right text-xs font-medium">{p.actual}L</div>
-                <div className={cn("w-20 text-right text-xs font-medium", p.variance > 0 ? "text-red-600" : "text-emerald-600")}>
-                  {p.variance > 0 ? "+" : ""}{p.variance.toFixed(1)}%
-                </div>
-              </div>
-            ))}
-          </div>
-        </CardContent>
-      </Card>
-
-      <div className="flex justify-end">
-        <Button size="sm" variant="outline" className="gap-2">
-          <Download size={14} /> Export BoQ (Excel)
-        </Button>
-      </div>
-    </div>
-  );
-}
-
-// ── Main Page ─────────────────────────────────────────────────────────────────
-
-const TABS = ["Overview", "Milestones", "Documents", "Risk", "Financials"];
 
 export default function ProjectDetailsPage() {
   const { id } = useParams();
-  const { user } = useAuthStore();
-  const [activeTab, setActiveTab] = useState("Overview");
+  const [activeTab, setActiveTab] = useState("overview");
+  const { data: project, isLoading, error } = useMyProjectDetail(id);
+  const {
+    milestones,
+    isLoading: milestonesLoading,
+    error: milestonesError,
+  } = useMilestones(id, undefined, activeTab === "milestones");
 
-  const project = MOCK_PROJECTS.find((item) => item.id === id) || MOCK_PROJECTS[0];
-  const canEdit = user?.role === "SUPER_ADMIN" || user?.role === "PROJECT_MANAGER";
+  if (isLoading) {
+    return <div className="p-6 md:p-8 text-center text-muted-foreground">Loading project details...</div>;
+  }
 
-  const statusColor = {
-    Active: "bg-emerald-100 text-emerald-700 border-emerald-200",
-    Delayed: "bg-red-100 text-red-700 border-red-200",
-    Completed: "bg-blue-100 text-blue-700 border-blue-200",
-    "On Hold": "bg-amber-100 text-amber-700 border-amber-200",
-  }[project.status];
-
-  const budgetVariance = ((project.budgetActual - project.budgetPlanned) / project.budgetPlanned) * 100;
+  if (error || !project) {
+    return (
+      <div className="p-6 md:p-8 text-center">
+        <h1 className="text-2xl font-bold">Project not found</h1>
+        <p className="text-muted-foreground mt-2">{error || "The requested project does not exist."}</p>
+        <Button asChild className="mt-6">
+          <Link to="/projects"><ArrowLeft size={16} className="mr-2" />Back to Projects</Link>
+        </Button>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6">
-      {/* Breadcrumb */}
-      <div className="flex items-center gap-2 text-sm text-muted-foreground">
-        <Link to="/projects" className="hover:text-foreground flex items-center gap-1 transition-colors">
-          <ArrowLeft size={14} />
-          Projects
-        </Link>
-        <ChevronRight size={14} />
-        <span className="text-foreground font-medium truncate">{project.name}</span>
+      <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
+        <div className="space-y-3">
+          <div className="flex items-center gap-2 text-sm text-muted-foreground">
+            <Button variant="ghost" size="sm" asChild className="px-2">
+              <Link to="/projects"><ArrowLeft size={16} /></Link>
+            </Button>
+            <span>Project Details</span>
+          </div>
+          <div>
+            <h1 className="text-3xl font-bold tracking-tight">{project.name}</h1>
+            <p className="text-muted-foreground mt-1">{project.location}</p>
+          </div>
+        </div>
+        <Button asChild className="gap-2" variant="outline">
+          <Link to="/projects/milestones">
+            <Flag size={16} /> All Milestones
+          </Link>
+        </Button>
       </div>
 
-      {/* Project header */}
-      <div className="bg-white border border-slate-200 rounded-2xl p-6">
-        <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-4">
-          <div className="flex-1 min-w-0">
-            <div className="flex items-center gap-3 mb-2">
-              <div className="h-10 w-10 rounded-xl bg-gradient-to-br from-[hsl(213,65%,18%)] to-[hsl(213,65%,35%)] flex items-center justify-center shrink-0">
-                <Building2 size={18} className="text-white" />
-              </div>
-              <div>
-                <h1 className="text-xl font-semibold text-foreground leading-tight">{project.name}</h1>
-                <div className="flex items-center gap-3 mt-0.5">
-                  <span className="text-sm text-muted-foreground flex items-center gap-1">
-                    <MapPin size={12} />{project.location}
-                  </span>
-                  <span className="text-sm text-muted-foreground">{project.type}</span>
-                  <Badge className={cn("text-[10px] border", statusColor)}>{project.status}</Badge>
-                </div>
-              </div>
-            </div>
-            <p className="text-sm text-muted-foreground">{project.description}</p>
+      <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-4">
+        <TabsList>
+          <TabsTrigger value="overview">Overview</TabsTrigger>
+          <TabsTrigger value="milestones">Milestones</TabsTrigger>
+        </TabsList>
+
+        <TabsContent value="overview" className="space-y-6">
+          <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+            <Card><CardContent className="p-4"><p className="text-xs text-muted-foreground">Status</p><p className="text-2xl font-bold mt-1">{project.status}</p></CardContent></Card>
+            <Card><CardContent className="p-4"><p className="text-xs text-muted-foreground">Progress</p><p className="text-2xl font-bold mt-1 text-emerald-600">{project.progressPercentage}%</p></CardContent></Card>
+            <Card><CardContent className="p-4"><p className="text-xs text-muted-foreground">Priority</p><p className="text-2xl font-bold mt-1 text-amber-600">{project.priority}</p></CardContent></Card>
+            <Card><CardContent className="p-4"><p className="text-xs text-muted-foreground">Budget</p><p className="text-2xl font-bold mt-1">₹{(project.budget / 100000).toFixed(1)}L</p></CardContent></Card>
           </div>
-          {canEdit && (
-            <div className="flex gap-2 shrink-0">
-              <Button size="sm" variant="outline" className="gap-2"><Share2 size={14} />Share</Button>
-              <Button size="sm" variant="outline" className="gap-2"><Download size={14} />Report</Button>
-              <Button size="sm" className="bg-[hsl(25,99%,55%)] text-white hover:bg-[hsl(25,99%,48%)] gap-2"><Edit size={14} />Edit</Button>
+
+          <Card>
+            <CardContent className="p-4 grid gap-4 md:grid-cols-4 text-sm">
+              <div className="flex items-center gap-2"><Building2 size={16} className="text-muted-foreground" /><span>{project.location}</span></div>
+              <div className="flex items-center gap-2"><MapPin size={16} className="text-muted-foreground" /><span>{project.description}</span></div>
+              <div className="flex items-center gap-2"><Calendar size={16} className="text-muted-foreground" /><span>{project.startDate} → {project.endDate}</span></div>
+              <div className="flex items-center gap-2"><DollarSign size={16} className="text-muted-foreground" /><span>Updated {project.updatedAt ? new Date(project.updatedAt).toLocaleString() : "-"}</span></div>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader className="pb-3">
+              <CardTitle className="text-sm flex items-center gap-2"><FileText size={14} /> Project Summary</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-3 text-sm text-muted-foreground">
+              <p>This detail view is powered by the new client project detail API.</p>
+              <p className="flex items-center gap-2"><Activity size={14} /> Created at: {project.createdAt ? new Date(project.createdAt).toLocaleString() : "-"}</p>
+              <p className="flex items-center gap-2"><Sparkles size={14} /> Last updated: {project.updatedAt ? new Date(project.updatedAt).toLocaleString() : "-"}</p>
+              <Button className="bg-[hsl(25,99%,55%)] text-white hover:bg-[hsl(25,99%,48%)] gap-2 w-fit">
+                <Target size={14} /> Ask Aura
+              </Button>
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        <TabsContent value="milestones" className="space-y-4">
+          {milestonesLoading && (
+            <Card>
+              <CardContent className="p-6 text-sm text-muted-foreground">Loading milestones...</CardContent>
+            </Card>
+          )}
+
+          {milestonesError && (
+            <Card className="border-destructive bg-destructive/10">
+              <CardContent className="p-6 text-sm text-destructive">
+                Failed to load milestones.
+              </CardContent>
+            </Card>
+          )}
+
+          {!milestonesLoading && !milestonesError && milestones.length === 0 && (
+            <Card>
+              <CardContent className="p-6 text-sm text-muted-foreground">No milestones found for this project.</CardContent>
+            </Card>
+          )}
+
+          {!milestonesLoading && !milestonesError && milestones.length > 0 && (
+            <div className="space-y-3">
+              {milestones.map((milestone, index) => (
+                <Card key={milestone.id}>
+                  <CardContent className="p-4">
+                    <div className="flex items-start justify-between gap-4">
+                      <div>
+                        <p className="text-sm text-muted-foreground">Milestone {index + 1}</p>
+                        <h3 className="text-base font-semibold mt-1">{milestone.title}</h3>
+                        <p className="text-sm text-muted-foreground mt-1">{milestone.description || "No description"}</p>
+                        <p className="text-xs text-muted-foreground mt-2">
+                          Due: {formatDate(milestone.dueDate)}
+                        </p>
+                      </div>
+                      <Badge className={milestoneStatusStyles[milestone.status] ?? milestoneStatusStyles.PENDING}>
+                        {milestone.status === "COMPLETED" && <CheckCircle2 size={12} className="mr-1" />}
+                        {milestone.status === "IN_PROGRESS" && <Clock size={12} className="mr-1" />}
+                        {milestone.status === "DELAYED" && <AlertTriangle size={12} className="mr-1" />}
+                        {milestone.status}
+                      </Badge>
+                    </div>
+                  </CardContent>
+                </Card>
+              ))}
             </div>
           )}
-        </div>
-
-        {/* Stats row */}
-        <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-6 gap-3 mt-5 pt-5 border-t border-slate-100">
-          {[
-            { label: "Completion", value: `${project.completion}%`, highlight: true },
-            { label: "Health Score", value: `${project.healthScore}/100`, color: project.healthScore >= 80 ? "text-emerald-600" : project.healthScore >= 60 ? "text-amber-600" : "text-red-600" },
-            { label: "Risk Score", value: project.riskScore },
-            { label: "Resources", value: `${project.resourceUtilization}%` },
-            { label: "Budget Variance", value: `${budgetVariance > 0 ? "+" : ""}${budgetVariance.toFixed(1)}%`, color: budgetVariance > 0 ? "text-red-600" : "text-emerald-600" },
-            { label: "AI Req. Score", value: `${project.aiRequirementScore}%` },
-          ].map(({ label, value, highlight, color }) => (
-            <div key={label} className={cn("text-center p-2.5 rounded-xl", highlight ? "bg-[hsl(213,65%,18%)] text-white" : "bg-slate-50")}>
-              <p className={cn("text-lg font-bold", highlight ? "text-white" : color || "text-foreground")}>{value}</p>
-              <p className={cn("text-[10px]", highlight ? "text-white/70" : "text-muted-foreground")}>{label}</p>
-            </div>
-          ))}
-        </div>
-      </div>
-
-      {/* Tabs */}
-      <div className="flex gap-1 bg-slate-100 rounded-xl p-1">
-        {TABS.map((tab) => (
-          <button
-            key={tab}
-            onClick={() => setActiveTab(tab)}
-            className={cn(
-              "flex-1 py-2 px-3 rounded-lg text-sm font-medium transition-all",
-              activeTab === tab ? "bg-white text-foreground shadow-sm" : "text-muted-foreground hover:text-foreground"
-            )}
-          >
-            {tab}
-          </button>
-        ))}
-      </div>
-
-      {/* Tab content */}
-      {activeTab === "Overview" && <OverviewTab project={project} />}
-      {activeTab === "Milestones" && <MilestonesTab project={project} />}
-      {activeTab === "Documents" && <DocumentsTab />}
-      {activeTab === "Risk" && <RiskTab project={project} />}
-      {activeTab === "Financials" && <FinancialsTab project={project} />}
+        </TabsContent>
+      </Tabs>
     </div>
   );
 }

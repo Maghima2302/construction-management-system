@@ -1,45 +1,42 @@
-import { FormEvent, useMemo, useState } from "react";
-import { Navigate, useLocation, useNavigate } from "react-router-dom";
+import { FormEvent, useState } from "react";
+import { Link, Navigate, useLocation, useNavigate } from "react-router-dom";
 import { Eye, EyeOff, KeyRound } from "lucide-react";
-import { DEMO_USERS } from "@/constants/mockAuth";
-import { ROLE_LABELS } from "@/constants/rbac";
+import { DASHBOARD_PATH_BY_ROLE } from "@/constants/rbac";
 import { useAuthStore } from "@/store/authStore";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import { authService } from "@/services/authService";
 
 export default function LoginPage() {
   const location = useLocation();
   const navigate = useNavigate();
-  const { login, isAuthenticated, user, token, getDashboardPath } = useAuthStore();
-  const [email, setEmail] = useState(DEMO_USERS[0].user.email);
-  const [password, setPassword] = useState(DEMO_USERS[0].password);
+  const { setSession, isAuthenticated, user, token, getDashboardPath } = useAuthStore();
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
   const [error, setError] = useState<string | null>(null);
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
 
   const fromPath = (location.state as { from?: { pathname?: string } } | undefined)?.from?.pathname;
-
-  const roleCredentials = useMemo(() => DEMO_USERS, []);
 
   if (isAuthenticated && user && token) {
     return <Navigate to={fromPath || getDashboardPath()} replace />;
   }
 
-  const onSubmit = (event: FormEvent) => {
+  const onSubmit = async (event: FormEvent) => {
     event.preventDefault();
-    const result = login({ email, password });
-
-    if (!result.success) {
-      setError(result.message);
-      return;
-    }
-
-    navigate(fromPath || "/dashboard", { replace: true });
-  };
-
-  const fillCredentials = (selectedEmail: string, selectedPassword: string) => {
-    setEmail(selectedEmail);
-    setPassword(selectedPassword);
     setError(null);
+    setIsSubmitting(true);
+
+    try {
+      const result = await authService.login({ email, password });
+      setSession(result);
+      navigate(fromPath || DASHBOARD_PATH_BY_ROLE[result.user.role], { replace: true });
+    } catch (submitError: unknown) {
+      setError(submitError instanceof Error ? submitError.message : "Login failed. Please try again.");
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   return (
@@ -80,29 +77,16 @@ export default function LoginPage() {
             </div>
           </div>
           {error ? <p className="text-sm text-destructive">{error}</p> : null}
-          <Button type="submit" className="w-full">
-            Login
+          <Button type="submit" className="w-full" disabled={isSubmitting}>
+            {isSubmitting ? "Signing in..." : "Login"}
           </Button>
+          <p className="text-center text-sm text-muted-foreground">
+            Need an account?{" "}
+            <Link to="/register" className="font-medium text-primary hover:underline">
+              Register
+            </Link>
+          </p>
         </form>
-
-        <div className="mt-5 rounded-md border border-border p-3">
-          <p className="text-xs font-semibold mb-3">Credentials for each user</p>
-          <div className="grid gap-2 md:grid-cols-2">
-            {roleCredentials.map((record) => (
-              <button
-                key={record.user.id}
-                type="button"
-                onClick={() => fillCredentials(record.user.email, record.password)}
-                className="rounded-md border border-border p-2 text-left hover:bg-muted/40 transition-colors"
-              >
-                <p className="text-xs font-semibold">{ROLE_LABELS[record.user.role]}</p>
-                <p className="text-xs text-muted-foreground mt-1">{record.user.email}</p>
-                <p className="text-xs text-muted-foreground">{record.password}</p>
-              </button>
-            ))}
-          </div>
-          <p className="text-[11px] text-muted-foreground mt-2">Tap any role card to auto-fill login form.</p>
-        </div>
       </CardContent>
     </Card>
   );
