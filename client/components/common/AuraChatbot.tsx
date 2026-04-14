@@ -34,90 +34,9 @@ interface ChatMessage {
     copied?: boolean;
     suggestions?: string[];
     tag?: "insight" | "alert" | "tip" | "answer";
+    projects?: any[];
 }
 
-// ─── Dummy conversation bank (contextual, realistic) ──────────────────────────
-
-const DUMMY_CONVERSATIONS: Record<string, ChatMessage[]> = {
-    dashboard: [
-        {
-            id: "a1",
-            role: "aura",
-            text: "👋 Hello! I'm **Aura**, your AI construction assistant. Based on today's portfolio data, I've identified **3 high-priority items** that need your attention.",
-            timestamp: new Date(Date.now() - 1000 * 60 * 5),
-            tag: "insight",
-            suggestions: [
-                "Show risk alerts",
-                "Budget summary",
-                "Upcoming milestones",
-            ],
-        },
-    ],
-    risk: [
-        {
-            id: "r1",
-            role: "aura",
-            text: "⚠️ **GreenField Phase II** has a delay probability of **42%** based on current progress velocity and upcoming weather patterns. I recommend reviewing buffer allocations for Week 17–18.",
-            timestamp: new Date(Date.now() - 1000 * 60 * 3),
-            tag: "alert",
-            suggestions: [
-                "Mitigation options",
-                "Reallocate resources",
-                "Notify PM",
-            ],
-        },
-    ],
-    planning: [
-        {
-            id: "p1",
-            role: "aura",
-            text: "📅 Critical path analysis complete. **Foundation → Structural Steel → MEP Rough-in** is your longest sequence at **47 working days**. I found a 4-day float in the glazing package.",
-            timestamp: new Date(Date.now() - 1000 * 60 * 2),
-            tag: "insight",
-            suggestions: [
-                "Optimize schedule",
-                "View Gantt",
-                "Labour breakdown",
-            ],
-        },
-    ],
-    default: [
-        {
-            id: "d1",
-            role: "aura",
-            text: "Hi! I'm **Aura** — your AI-powered construction intelligence assistant. Ask me anything about your projects, risk scores, materials, schedules, or compliance standards.",
-            timestamp: new Date(Date.now() - 1000 * 60 * 1),
-            tag: "tip",
-            suggestions: [
-                "Project health summary",
-                "Top 3 risks today",
-                "Material recommendations",
-                "Budget status",
-            ],
-        },
-    ],
-};
-
-// ─── Contextual Aura responses (dummy AI) ─────────────────────────────────────
-
-const AURA_RESPONSES: string[] = [
-    "Based on current site data, **Skyline Corporate Tower** is tracking at **78% completion** — ahead of schedule by 4 days. Material delivery for facade cladding is confirmed for next Tuesday.",
-    "I've analysed the risk register. Your top mitigation priority is the **concrete pour window** for Block B Slab — weather forecast shows a 34% chance of rain during the planned window on Apr 24.",
-    "Cost intelligence update: steel prices have increased **6.2% this week** in the regional market. Your approved BoQ for structural steel may need a change-order review within 72 hours.",
-    "Workforce analytics flag: **18 workers** are approaching overtime thresholds this week. Redistributing 4 trades to the finishing crew could save approximately **$12,400** in overtime costs.",
-    "Sustainability check: At current carbon emission rate, **EcoBuild Plant** will score **71/100** on the LEED pre-assessment — 4 points below the Silver threshold. I recommend switching to low-carbon concrete for the remaining pours.",
-    "Blueprint Analyzer detected **3 potential MEP clashes** in the revised Level 4 drawing set. Coordination meeting recommended before issue-for-construction.",
-    "Your Q2 cash-flow projection shows a **$2.1M gap** in May. Accelerating 2 milestone completions could trigger earlier payment. Shall I generate a cash-flow optimisation report?",
-    "I found **2 supplier alternatives** for Type-C rebar that are 11% cheaper with equivalent lead times. Want me to compare specs and generate an RFQ draft?",
-];
-
-let responseIndex = 0;
-
-function getNextResponse(): string {
-    const response = AURA_RESPONSES[responseIndex % AURA_RESPONSES.length];
-    responseIndex++;
-    return response;
-}
 
 // ─── Quick action prompts per context ────────────────────────────────────────
 
@@ -192,10 +111,12 @@ function MessageBubble({
     message,
     onLike,
     onCopy,
+    onSelectProject,
 }: {
     message: ChatMessage;
     onLike: (id: string, liked: boolean) => void;
     onCopy: (id: string, text: string) => void;
+    onSelectProject?: (projectId: string, projectName: string) => void;
 }) {
     const isAura = message.role === "aura";
 
@@ -245,6 +166,22 @@ function MessageBubble({
                                 onClick={() => { }}
                             >
                                 {s}
+                            </button>
+                        ))}
+                    </div>
+                )}
+
+                {/* Projects */}
+                {isAura && message.projects && message.projects.length > 0 && (
+                    <div className="flex flex-col gap-2 mt-2 w-full max-w-full">
+                        {message.projects.map((proj) => (
+                            <button
+                                key={proj.project_id}
+                                onClick={() => onSelectProject && onSelectProject(proj.project_id, proj.project_name)}
+                                className="flex flex-col items-start p-3 bg-slate-50 border border-slate-200 rounded-xl hover:bg-white hover:border-[hsl(213,65%,40%)] hover:shadow-sm transition-all text-left w-full group"
+                            >
+                                <span className="font-semibold text-slate-800 text-[13px] group-hover:text-[hsl(213,65%,35%)]">{proj.project_name}</span>
+                                <span className="text-[10px] text-slate-500 mt-0.5 tracking-wide uppercase font-medium">{proj.status} &bull; {proj.location}</span>
                             </button>
                         ))}
                     </div>
@@ -308,13 +245,25 @@ interface AuraChatbotProps {
 }
 
 export default function AuraChatbot({ context = "default" }: AuraChatbotProps) {
-    const { user } = useAuthStore();
+    const { user, token } = useAuthStore();
 
     const [isOpen, setIsOpen] = useState(false);
     const [isExpanded, setIsExpanded] = useState(false);
-    const [messages, setMessages] = useState<ChatMessage[]>(() => {
-        return DUMMY_CONVERSATIONS[context] ?? DUMMY_CONVERSATIONS.default;
-    });
+    const defaultWelcomeMessage: ChatMessage = {
+        id: "welcome-msg",
+        role: "aura",
+        text: "Hi! I'm **Aura** — your AI-powered construction intelligence assistant. Ask me anything about your projects, risk scores, materials, schedules, or compliance standards.",
+        timestamp: new Date(),
+        tag: "tip",
+        suggestions: [
+            "Project health summary",
+            "Top 3 risks today",
+            "Material recommendations",
+            "Budget status",
+        ],
+    };
+
+    const [messages, setMessages] = useState<ChatMessage[]>([defaultWelcomeMessage]);
     const [inputValue, setInputValue] = useState("");
     const [isTyping, setIsTyping] = useState(false);
     const [unreadCount, setUnreadCount] = useState(1);
@@ -340,7 +289,7 @@ export default function AuraChatbot({ context = "default" }: AuraChatbotProps) {
     };
 
     const sendMessage = useCallback(
-        async (text: string) => {
+        async (text: string, projectId: string | null = null) => {
             if (!text.trim()) return;
 
             const userMsg: ChatMessage = {
@@ -355,23 +304,68 @@ export default function AuraChatbot({ context = "default" }: AuraChatbotProps) {
             setInputValue("");
             setIsTyping(true);
 
-            // Simulate Aura typing (1.2–2s delay)
-            await new Promise((r) => setTimeout(r, 1200 + Math.random() * 800));
+            try {
+                const baseUrl = import.meta.env.VITE_API_URL || "";
+                const response = await fetch(`${baseUrl}/client/chat`, {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json",
+                        ...(token ? { "Authorization": `Bearer ${token}` } : {}),
+                    },
+                    body: JSON.stringify({
+                        message: text.trim(),
+                        selected_project_id: projectId,
+                    }),
+                });
 
-            const auraMsg: ChatMessage = {
-                id: `a-${Date.now()}`,
-                role: "aura",
-                text: getNextResponse(),
-                timestamp: new Date(),
-                status: "delivered",
-                tag: "answer",
-                suggestions: ["Follow-up question", "Export report", "Schedule action"],
-            };
+                if (!response.ok) {
+                    throw new Error("Failed to communicate with Aura");
+                }
 
-            setIsTyping(false);
-            setMessages((prev) => [...prev, auraMsg]);
+                const dataResult = await response.json();
+                const responseData = dataResult.data;
+
+                let finalAnswer = responseData.answer || "";
+                if (responseData.project_insights) {
+                    finalAnswer += `\n\n**Activity Insight:**\n${responseData.project_insights}`;
+                }
+                if (responseData.risks && responseData.risks.length > 0) {
+                    finalAnswer += `\n\n**Risks Detected:**\n- ${responseData.risks.join("\n- ")}`;
+                }
+                if (!finalAnswer && responseData.awaiting_selection) {
+                    finalAnswer = "I found multiple projects. Which one would you like to know about?";
+                }
+
+                const auraMsg: ChatMessage = {
+                    id: `a-${Date.now()}`,
+                    role: "aura",
+                    text: finalAnswer,
+                    timestamp: new Date(),
+                    status: "delivered",
+                    tag: responseData.project_insights ? "insight" : (responseData.risks?.length ? "alert" : "answer"),
+                    suggestions: responseData.materials?.slice(0, 3) || [],
+                    projects: responseData.projects || [],
+                };
+
+                setMessages((prev) => [...prev, auraMsg]);
+            } catch (error) {
+                console.error("Chat error:", error);
+                
+                const errorMsg: ChatMessage = {
+                    id: `e-${Date.now()}`,
+                    role: "aura",
+                    text: "I encountered an error trying to process your request. Please ensure the backend is running and try again.",
+                    timestamp: new Date(),
+                    status: "delivered",
+                    tag: "alert",
+                };
+                
+                setMessages((prev) => [...prev, errorMsg]);
+            } finally {
+                setIsTyping(false);
+            }
         },
-        [],
+        [token],
     );
 
     const handleSend = () => sendMessage(inputValue);
@@ -406,7 +400,7 @@ export default function AuraChatbot({ context = "default" }: AuraChatbotProps) {
     };
 
     const handleClear = () => {
-        setMessages(DUMMY_CONVERSATIONS[context] ?? DUMMY_CONVERSATIONS.default);
+        setMessages([{ ...defaultWelcomeMessage, id: `welcome-msg-${Date.now()}` }]);
     };
 
     // ── FAB (floating action button) ──────────────────────────────────────────
@@ -512,6 +506,7 @@ export default function AuraChatbot({ context = "default" }: AuraChatbotProps) {
                         message={msg}
                         onLike={handleLike}
                         onCopy={handleCopy}
+                        onSelectProject={(id, name) => sendMessage(name.toLowerCase(), id)}
                     />
                 ))}
 
