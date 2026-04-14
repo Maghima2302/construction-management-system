@@ -306,16 +306,21 @@ export default function AuraChatbot({ context = "default" }: AuraChatbotProps) {
 
             try {
                 const baseUrl = import.meta.env.VITE_API_URL || "";
-                const response = await fetch(`${baseUrl}/client/chat`, {
+                const isEngineerChat = user?.role === "SUPER_ADMIN" || user?.role === "ENGINEER";
+                const endpoint = isEngineerChat ? "/engineer/chat" : "/client/chat";
+                
+                const response = await fetch(`${baseUrl}${endpoint}`, {
                     method: "POST",
                     headers: {
                         "Content-Type": "application/json",
                         ...(token ? { "Authorization": `Bearer ${token}` } : {}),
                     },
-                    body: JSON.stringify({
-                        message: text.trim(),
-                        selected_project_id: projectId,
-                    }),
+                    body: isEngineerChat 
+                        ? JSON.stringify({ prompt: text.trim() })
+                        : JSON.stringify({
+                            message: text.trim(),
+                            selected_project_id: projectId,
+                        }),
                 });
 
                 if (!response.ok) {
@@ -325,15 +330,32 @@ export default function AuraChatbot({ context = "default" }: AuraChatbotProps) {
                 const dataResult = await response.json();
                 const responseData = dataResult.data;
 
-                let finalAnswer = responseData.answer || "";
-                if (responseData.project_insights) {
-                    finalAnswer += `\n\n**Activity Insight:**\n${responseData.project_insights}`;
-                }
-                if (responseData.risks && responseData.risks.length > 0) {
-                    finalAnswer += `\n\n**Risks Detected:**\n- ${responseData.risks.join("\n- ")}`;
-                }
-                if (!finalAnswer && responseData.awaiting_selection) {
-                    finalAnswer = "I found multiple projects. Which one would you like to know about?";
+                let finalAnswer = "";
+                let suggestions: string[] = [];
+                let projects: any[] = [];
+                let tag: ChatMessage["tag"] = "answer";
+
+                if (isEngineerChat && responseData.is_project_request && responseData.project_scope) {
+                    // Handle complex Engineer Project Plan response
+                    const plan = responseData;
+                    finalAnswer = `**Project Plan Generated**\n\n**Scope:** ${plan.project_scope.summary}\n\n**Timeline:** ${plan.timeline.estimated_duration}\n\n**Budget:** Labour (${plan.budget_breakdown.labour}), Materials (${plan.budget_breakdown.materials})\n\n**Top Risks:**\n${plan.risks.slice(0, 2).map((r: any) => `- ${r.risk} (${r.severity})`).join("\n")}`;
+                    tag = "insight";
+                    suggestions = ["View full plan", "Export to PDF", "Resource details"];
+                } else {
+                    // Original client chat response handling
+                    finalAnswer = responseData.answer || "";
+                    if (responseData.project_insights) {
+                        finalAnswer += `\n\n**Activity Insight:**\n${responseData.project_insights}`;
+                    }
+                    if (responseData.risks && responseData.risks.length > 0) {
+                        finalAnswer += `\n\n**Risks Detected:**\n- ${responseData.risks.join("\n- ")}`;
+                    }
+                    if (!finalAnswer && responseData.awaiting_selection) {
+                        finalAnswer = "I found multiple projects. Which one would you like to know about?";
+                    }
+                    suggestions = responseData.materials?.slice(0, 3) || [];
+                    projects = responseData.projects || [];
+                    tag = responseData.project_insights ? "insight" : (responseData.risks?.length ? "alert" : "answer");
                 }
 
                 const auraMsg: ChatMessage = {
@@ -342,9 +364,9 @@ export default function AuraChatbot({ context = "default" }: AuraChatbotProps) {
                     text: finalAnswer,
                     timestamp: new Date(),
                     status: "delivered",
-                    tag: responseData.project_insights ? "insight" : (responseData.risks?.length ? "alert" : "answer"),
-                    suggestions: responseData.materials?.slice(0, 3) || [],
-                    projects: responseData.projects || [],
+                    tag,
+                    suggestions,
+                    projects,
                 };
 
                 setMessages((prev) => [...prev, auraMsg]);

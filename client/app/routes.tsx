@@ -34,6 +34,7 @@ import SuppliersPage from "@/features/suppliers/pages/SuppliersPage";
 import SupplierDetailsPage from "@/features/suppliers/pages/SupplierDetailsPage";
 import WorkforcePage from "@/features/workforce/pages/WorkforcePage";
 import ConstructionKnowledgePage from "@/features/construction-knowledge/pages/ConstructionKnowledgePage";
+import EngineerChatPage from "@/features/engineer-chat/pages/EngineerChatPage";
 import NotFound from "@/pages/NotFound";
 import AIAssistant from "@/pages/AIAssistant";
 import Approvals from "@/pages/Approvals";
@@ -287,6 +288,14 @@ export function AppRoutes() {
             element={
               <ModuleGuard moduleKey="construction-knowledge">
                 <ConstructionKnowledgePage />
+              </ModuleGuard>
+            }
+          />
+          <Route
+            path="/engineer/chat"
+            element={
+              <ModuleGuard moduleKey="engineer-chat">
+                <EngineerChatPage />
               </ModuleGuard>
             }
           />

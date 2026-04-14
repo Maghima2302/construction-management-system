@@ -39,6 +39,7 @@ const defaultNavItems: NavItem[] = [
   { name: "Site Intelligence", icon: <Camera size={20} />, href: "/site-intelligence" },
   { name: "AI Assistant", icon: <MessageSquare size={20} />, href: "/ai-assistant" },
   { name: "Reports", icon: <BarChart3 size={20} />, href: "/reports" },
+  { name: "Engineer Chat", icon: <Bot size={20} />, href: "/engineer/chat" },
   { name: "Settings", icon: <Settings size={20} />, href: "/settings" },
 ];
 
