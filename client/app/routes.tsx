@@ -12,6 +12,7 @@ import ClientsPage from "@/features/clients/pages/ClientsPage";
 import ClientProfilePage from "@/features/clients/pages/ClientProfilePage";
 import ProjectsPage from "@/features/projects/pages/ProjectsPage";
 import ProjectDetailsPage from "@/features/projects/pages/ProjectDetailsPage";
+import { ProjectMilestonesPage } from "@/features/projects/pages/ProjectMilestonesPage";
 import CreateProjectPage from "@/features/projects/pages/CreateProjectPage";
 import AIInterviewPage from "@/features/ai-interview/pages/AIInterviewPage";
 import AIInterviewHistoryPage from "@/features/ai-interview/pages/AIInterviewHistoryPage";
@@ -33,7 +34,18 @@ import SuppliersPage from "@/features/suppliers/pages/SuppliersPage";
 import SupplierDetailsPage from "@/features/suppliers/pages/SupplierDetailsPage";
 import WorkforcePage from "@/features/workforce/pages/WorkforcePage";
 import ConstructionKnowledgePage from "@/features/construction-knowledge/pages/ConstructionKnowledgePage";
+import EngineerChatPage from "@/features/engineer-chat/pages/EngineerChatPage";
 import NotFound from "@/pages/NotFound";
+import AIAssistant from "@/pages/AIAssistant";
+import Approvals from "@/pages/Approvals";
+import Costs from "@/pages/Costs";
+import Documents from "@/pages/Documents";
+import Messages from "@/pages/Messages";
+import Notifications from "@/pages/Notifications";
+import Reports from "@/pages/Reports";
+import Scheduling from "@/pages/Scheduling";
+import Settings from "@/pages/Settings";
+import SiteIntelligence from "@/pages/SiteIntelligence";
 
 export function AppRoutes() {
   return (
@@ -56,6 +68,27 @@ export function AppRoutes() {
           <Route path="/dashboard/engineer" element={<RoleDashboardPage />} />
           <Route path="/dashboard/client" element={<RoleDashboardPage />} />
 
+          {/* Core Management Routes - Order matters, keep specific above general */}
+          <Route path="/scheduling" element={<Scheduling />} />
+          <Route path="/approvals" element={<Approvals />} />
+          <Route path="/documents" element={<Documents />} />
+          <Route path="/costs" element={<Costs />} />
+          <Route path="/site-intelligence" element={<SiteIntelligence />} />
+          <Route path="/messages" element={<Messages />} />
+          <Route path="/notifications" element={<Notifications />} />
+          <Route path="/ai-assistant" element={<AIAssistant />} />
+          <Route path="/reports" element={<Reports />} />
+          <Route path="/settings" element={<Settings />} />
+
+          <Route
+            path="/engineer/chat"
+            element={
+              <ProtectedRoute allowedRoles={["ENGINEER"]}>
+                <EngineerChatPage />
+              </ProtectedRoute>
+            }
+          />
+
           <Route
             path="/clients"
             element={
@@ -73,10 +106,26 @@ export function AppRoutes() {
             }
           />
           <Route
+            path="/projects/milestones"
+            element={
+              <ModuleGuard moduleKey="projects">
+                <ProjectMilestonesPage />
+              </ModuleGuard>
+            }
+          />
+          <Route
             path="/projects/:id"
             element={
               <ModuleGuard moduleKey="projects">
                 <ProjectDetailsPage />
+              </ModuleGuard>
+            }
+          />
+          <Route
+            path="/projects/:projectId/milestones"
+            element={
+              <ModuleGuard moduleKey="projects">
+                <ProjectMilestonesPage />
               </ModuleGuard>
             }
           />
@@ -264,6 +313,16 @@ export function AppRoutes() {
               </ModuleGuard>
             }
           />
+          <Route
+            path="/engineer/chat"
+            element={
+              <ModuleGuard moduleKey="engineer-chat">
+                <EngineerChatPage />
+              </ModuleGuard>
+            }
+          />
+
+          <Route path="/settings" element={<Settings />} />
         </Route>
       </Route>
 

@@ -34,6 +34,7 @@ export const MODULE_PERMISSIONS: Record<UserRole, string[]> = {
     "workforce",
     "construction-knowledge",
     "settings",
+    "engineer-chat",
   ],
   PROJECT_MANAGER: [
     "dashboard",
@@ -76,6 +77,7 @@ export const MODULE_PERMISSIONS: Record<UserRole, string[]> = {
     "suppliers",
     "workforce",
     "construction-knowledge",
+    "engineer-chat",
   ],
   CLIENT: [
     "dashboard",
