@@ -313,6 +313,14 @@ export function AppRoutes() {
               </ModuleGuard>
             }
           />
+          <Route
+            path="/engineer/chat"
+            element={
+              <ModuleGuard moduleKey="engineer-chat">
+                <EngineerChatPage />
+              </ModuleGuard>
+            }
+          />
 
           <Route path="/settings" element={<Settings />} />
         </Route>

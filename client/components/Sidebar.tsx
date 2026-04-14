@@ -38,6 +38,7 @@ const defaultNavItems: NavItem[] = [
   { name: "Documents/BIM", icon: <FileText size={20} />, href: "/documents" },
   { name: "Site Intelligence", icon: <Camera size={20} />, href: "/site-intelligence" },
   { name: "Reports", icon: <BarChart3 size={20} />, href: "/reports" },
+  { name: "Engineer Chat", icon: <Bot size={20} />, href: "/engineer/chat" },
   { name: "Settings", icon: <Settings size={20} />, href: "/settings" },
 ];
 
