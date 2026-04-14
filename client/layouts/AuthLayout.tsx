@@ -1,26 +1,57 @@
-import { Building2 } from "lucide-react";
 import { Outlet } from "react-router-dom";
-import loginHero from "@/assets/login-hero.svg";
+import { motion } from "framer-motion";
 
 export default function AuthLayout() {
   return (
-    <div className="min-h-screen bg-background grid lg:grid-cols-2">
-      <div className="hidden lg:flex bg-primary text-primary-foreground p-12 flex-col justify-between">
-        <div className="flex items-center gap-2 text-lg font-semibold">
-          <Building2 className="text-accent" />
-          Civiora AI Construction Cloud
-        </div>
-        <div>
-          <h1 className="text-3xl font-bold mb-3">Build smarter with role-specific intelligence.</h1>
-          <p className="text-primary-foreground/80">
-            Unified dashboard for Project Managers, Architects, Engineers, Clients, and Platform Admins.
-          </p>
-        </div>
-        <div className="rounded-xl overflow-hidden border border-white/20 bg-white/5 p-2">
-          <img src={loginHero} alt="Construction analytics dashboard preview" className="w-full h-auto rounded-lg" />
-        </div>
+    <div className="relative min-h-screen w-full flex items-center justify-center overflow-hidden bg-[#0a0f1d]">
+      {/* Dynamic Background Blobs */}
+      <div className="absolute inset-0 overflow-hidden">
+        <motion.div
+          animate={{
+            scale: [1, 1.2, 1],
+            x: [0, 100, 0],
+            y: [0, 50, 0],
+          }}
+          transition={{
+            duration: 20,
+            repeat: Infinity,
+            ease: "linear",
+          }}
+          className="absolute top-[-10%] left-[-10%] w-[500px] h-[500px] rounded-full bg-blue-600/20 blur-[100px]"
+        />
+        <motion.div
+          animate={{
+            scale: [1, 1.3, 1],
+            x: [0, -120, 0],
+            y: [0, 80, 0],
+          }}
+          transition={{
+            duration: 25,
+            repeat: Infinity,
+            ease: "linear",
+          }}
+          className="absolute bottom-[-10%] right-[-10%] w-[600px] h-[600px] rounded-full bg-blue-500/10 blur-[120px]"
+        />
+        <motion.div
+          animate={{
+            scale: [1, 1.1, 1],
+            x: [0, 50, 0],
+            y: [0, -100, 0],
+          }}
+          transition={{
+            duration: 18,
+            repeat: Infinity,
+            ease: "linear",
+          }}
+          className="absolute top-[20%] right-[10%] w-[400px] h-[400px] rounded-full bg-indigo-600/15 blur-[80px]"
+        />
+        
+        {/* Subtle Dots Pattern */}
+        <div className="absolute inset-0 opacity-[0.03]" 
+             style={{ backgroundImage: 'radial-gradient(circle, white 1px, transparent 1px)', backgroundSize: '40px 40px' }} />
       </div>
-      <div className="flex items-center justify-center p-6">
+
+      <div className="relative z-10 w-full flex items-center justify-center p-6">
         <Outlet />
       </div>
     </div>

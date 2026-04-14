@@ -34,6 +34,7 @@ import SuppliersPage from "@/features/suppliers/pages/SuppliersPage";
 import SupplierDetailsPage from "@/features/suppliers/pages/SupplierDetailsPage";
 import WorkforcePage from "@/features/workforce/pages/WorkforcePage";
 import ConstructionKnowledgePage from "@/features/construction-knowledge/pages/ConstructionKnowledgePage";
+import EngineerChatPage from "@/features/engineer-chat/pages/EngineerChatPage";
 import NotFound from "@/pages/NotFound";
 import AIAssistant from "@/pages/AIAssistant";
 import Approvals from "@/pages/Approvals";
@@ -44,6 +45,7 @@ import Notifications from "@/pages/Notifications";
 import Reports from "@/pages/Reports";
 import Scheduling from "@/pages/Scheduling";
 import Settings from "@/pages/Settings";
+import SiteIntelligence from "@/pages/SiteIntelligence";
 
 export function AppRoutes() {
   return (
@@ -65,6 +67,27 @@ export function AppRoutes() {
           <Route path="/dashboard/architect" element={<RoleDashboardPage />} />
           <Route path="/dashboard/engineer" element={<RoleDashboardPage />} />
           <Route path="/dashboard/client" element={<RoleDashboardPage />} />
+
+          {/* Core Management Routes - Order matters, keep specific above general */}
+          <Route path="/scheduling" element={<Scheduling />} />
+          <Route path="/approvals" element={<Approvals />} />
+          <Route path="/documents" element={<Documents />} />
+          <Route path="/costs" element={<Costs />} />
+          <Route path="/site-intelligence" element={<SiteIntelligence />} />
+          <Route path="/messages" element={<Messages />} />
+          <Route path="/notifications" element={<Notifications />} />
+          <Route path="/ai-assistant" element={<AIAssistant />} />
+          <Route path="/reports" element={<Reports />} />
+          <Route path="/settings" element={<Settings />} />
+
+          <Route
+            path="/engineer/chat"
+            element={
+              <ProtectedRoute allowedRoles={["ENGINEER"]}>
+                <EngineerChatPage />
+              </ProtectedRoute>
+            }
+          />
 
           <Route
             path="/clients"
@@ -291,15 +314,6 @@ export function AppRoutes() {
             }
           />
 
-          {/* New Sidebar Routes */}
-          <Route path="/scheduling" element={<Scheduling />} />
-          <Route path="/approvals" element={<Approvals />} />
-          <Route path="/documents" element={<Documents />} />
-          <Route path="/costs" element={<Costs />} />
-          <Route path="/messages" element={<Messages />} />
-          <Route path="/notifications" element={<Notifications />} />
-          <Route path="/ai-assistant" element={<AIAssistant />} />
-          <Route path="/reports" element={<Reports />} />
           <Route path="/settings" element={<Settings />} />
         </Route>
       </Route>

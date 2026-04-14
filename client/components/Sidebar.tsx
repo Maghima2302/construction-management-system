@@ -37,7 +37,6 @@ const defaultNavItems: NavItem[] = [
   { name: "Cost & Contracts", icon: <DollarSign size={20} />, href: "/costs" },
   { name: "Documents/BIM", icon: <FileText size={20} />, href: "/documents" },
   { name: "Site Intelligence", icon: <Camera size={20} />, href: "/site-intelligence" },
-  { name: "AI Assistant", icon: <MessageSquare size={20} />, href: "/ai-assistant" },
   { name: "Reports", icon: <BarChart3 size={20} />, href: "/reports" },
   { name: "Settings", icon: <Settings size={20} />, href: "/settings" },
 ];
@@ -51,9 +50,14 @@ const clientNavItems: NavItem[] = [
   { name: "Budget & Costs", icon: <DollarSign size={20} />, href: "/costs" },
   { name: "Messages", icon: <MessageSquare size={20} />, href: "/messages" },
   { name: "Notifications", icon: <Bell size={20} />, href: "/notifications" },
-  { name: "AI Assistant (AURA)", icon: <Bot size={20} />, href: "/ai-assistant" },
   { name: "Reports", icon: <BarChart3 size={20} />, href: "/reports" },
   { name: "Settings", icon: <Settings size={20} />, href: "/settings" },
+];
+
+const engineerNavItems: NavItem[] = [
+  ...defaultNavItems.slice(0, 7), // Up to Site Intelligence
+  { name: "Engineer AI Workspace", icon: <Bot size={20} className="text-accent" />, href: "/engineer/chat" },
+  ...defaultNavItems.slice(7), // Reports and Settings
 ];
 
 const navItemsByRole: Partial<Record<UserRole, NavItem[]>> = {
@@ -61,7 +65,7 @@ const navItemsByRole: Partial<Record<UserRole, NavItem[]>> = {
   SUPER_ADMIN: defaultNavItems,
   PROJECT_MANAGER: defaultNavItems,
   ARCHITECT: defaultNavItems,
-  ENGINEER: defaultNavItems,
+  ENGINEER: engineerNavItems,
 };
 
 export const Sidebar = () => {
@@ -89,7 +93,7 @@ export const Sidebar = () => {
         {isOpen && (
           <div className="flex items-center gap-2">
             <Building2 size={28} className="text-accent" />
-            <h1 className="text-lg font-bold">ConstructAI</h1>
+            <h1 className="text-lg font-bold">Civiora</h1>
           </div>
         )}
         <button
