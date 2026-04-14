@@ -5,8 +5,9 @@ export default function Reports() {
   return (
     <PlaceholderPage
       title="Reports"
-      description="Generate comprehensive project reports including progress summaries, financial analytics, team performance metrics, and customizable dashboards for stakeholder communication."
+      description="Downloadable progress reports, resource utilization, and schedule summaries to keep all stakeholders informed."
       icon={<BarChart3 size={48} />}
     />
   );
 }
+

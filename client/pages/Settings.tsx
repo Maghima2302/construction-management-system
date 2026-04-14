@@ -5,8 +5,9 @@ export default function SettingsPage() {
   return (
     <PlaceholderPage
       title="Settings"
-      description="Manage your account preferences, team members, permissions, integrations, notifications, and system configurations for your organization."
+      description="Profile, password, and notification preferences. Customize your experience on the ConstructAI platform."
       icon={<Settings size={48} />}
     />
   );
 }
+
