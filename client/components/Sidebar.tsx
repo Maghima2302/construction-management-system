@@ -8,6 +8,7 @@ import {
   DollarSign,
   FileText,
   Camera,
+  BookOpen,
   MessageSquare,
   BarChart3,
   Settings,
@@ -37,8 +38,8 @@ const defaultNavItems: NavItem[] = [
   { name: "Cost & Contracts", icon: <DollarSign size={20} />, href: "/costs" },
   { name: "Documents/BIM", icon: <FileText size={20} />, href: "/documents" },
   { name: "Site Intelligence", icon: <Camera size={20} />, href: "/site-intelligence" },
+  { name: "Knowledge AI", icon: <BookOpen size={20} />, href: "/construction-knowledge" },
   { name: "Reports", icon: <BarChart3 size={20} />, href: "/reports" },
-  { name: "Engineer Chat", icon: <Bot size={20} />, href: "/engineer/chat" },
   { name: "Settings", icon: <Settings size={20} />, href: "/settings" },
 ];
 
@@ -49,17 +50,14 @@ const clientNavItems: NavItem[] = [
   { name: "Approvals", icon: <CheckCircle2 size={20} />, href: "/approvals" },
   { name: "Documents", icon: <FileText size={20} />, href: "/documents" },
   { name: "Budget & Costs", icon: <DollarSign size={20} />, href: "/costs" },
+  { name: "Knowledge AI", icon: <BookOpen size={20} />, href: "/construction-knowledge" },
   { name: "Messages", icon: <MessageSquare size={20} />, href: "/messages" },
   { name: "Notifications", icon: <Bell size={20} />, href: "/notifications" },
   { name: "Reports", icon: <BarChart3 size={20} />, href: "/reports" },
   { name: "Settings", icon: <Settings size={20} />, href: "/settings" },
 ];
 
-const engineerNavItems: NavItem[] = [
-  ...defaultNavItems.slice(0, 7), // Up to Site Intelligence
-  { name: "Engineer AI Workspace", icon: <Bot size={20} className="text-accent" />, href: "/engineer/chat" },
-  ...defaultNavItems.slice(7), // Reports and Settings
-];
+const engineerNavItems: NavItem[] = [...defaultNavItems];
 
 const navItemsByRole: Partial<Record<UserRole, NavItem[]>> = {
   CLIENT: clientNavItems,
@@ -140,7 +138,7 @@ export const Sidebar = () => {
       <div className="px-6 py-4 border-t border-sidebar-border">
         {isOpen && (
           <p className="text-xs opacity-60 text-center">
-            ConstructAI™ v1.0
+            Civiora™ v1.0
           </p>
         )}
       </div>

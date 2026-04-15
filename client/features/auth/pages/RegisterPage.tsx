@@ -1,7 +1,7 @@
 import { FormEvent, useMemo, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { User, Mail, Lock, Briefcase, ArrowRight, Building2 } from "lucide-react";
-import { motion, useMotionValue, useSpring, useTransform } from "framer-motion";
+import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { toast } from "@/hooks/use-toast";
@@ -35,31 +35,6 @@ export default function RegisterPage() {
   const [role, setRole] = useState<RegisterRole>("SUPER_ADMIN");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
-
-  // 3D Tilt Effect
-  const x = useMotionValue(0);
-  const y = useMotionValue(0);
-  const mouseXSpring = useSpring(x);
-  const mouseYSpring = useSpring(y);
-  const rotateX = useTransform(mouseYSpring, [-0.5, 0.5], ["10deg", "-10deg"]);
-  const rotateY = useTransform(mouseXSpring, [-0.5, 0.5], ["-10deg", "10deg"]);
-
-  const handleMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
-    const rect = e.currentTarget.getBoundingClientRect();
-    const width = rect.width;
-    const height = rect.height;
-    const mouseX = e.clientX - rect.left;
-    const mouseY = e.clientY - rect.top;
-    const xPct = mouseX / width - 0.5;
-    const yPct = mouseY / height - 0.5;
-    x.set(xPct);
-    y.set(yPct);
-  };
-
-  const handleMouseLeave = () => {
-    x.set(0);
-    y.set(0);
-  };
 
   const roles = useMemo(
     () =>
@@ -101,23 +76,16 @@ export default function RegisterPage() {
       initial={{ opacity: 0, scale: 0.95 }}
       animate={{ opacity: 1, scale: 1 }}
       transition={{ duration: 0.5 }}
-      style={{
-        rotateX,
-        rotateY,
-        transformStyle: "preserve-3d",
-      }}
-      onMouseMove={handleMouseMove}
-      onMouseLeave={handleMouseLeave}
       className="w-full max-w-md group"
     >
       <div 
         className={cn(
           "relative overflow-hidden rounded-[2rem] border border-white/20 bg-white/5 p-8 shadow-2xl backdrop-blur-xl transition-all duration-300",
-          "before:absolute before:inset-0 before:-z-10 before:bg-gradient-to-br before:from-blue-500/10 before:to-transparent before:opacity-50"
+          "before:absolute before:inset-0 before:-z-10 before:bg-gradient-to-br before:from-[hsl(25,99%,55%)]/15 before:to-transparent before:opacity-60"
         )}
       >
         <div className="mb-8 flex flex-col items-center text-center">
-          <div className="mb-4 flex h-16 w-16 items-center justify-center rounded-2xl bg-blue-600 shadow-lg shadow-blue-500/20">
+          <div className="mb-4 flex h-16 w-16 items-center justify-center rounded-2xl bg-[hsl(25,99%,55%)] shadow-lg shadow-orange-500/30">
             <Building2 className="h-10 w-10 text-white" />
           </div>
           <h1 className="text-3xl font-bold text-white tracking-tight">Create Account</h1>
@@ -127,7 +95,7 @@ export default function RegisterPage() {
         <form onSubmit={onSubmit} className="space-y-4">
           <div className="space-y-2 text-left">
             <div className="relative group/input">
-              <div className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 transition-colors group-focus-within/input:text-blue-500">
+              <div className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 transition-colors group-focus-within/input:text-[hsl(25,99%,55%)]">
                 <User size={18} />
               </div>
               <Input
@@ -135,7 +103,7 @@ export default function RegisterPage() {
                 placeholder="Full Name"
                 value={name}
                 onChange={(e) => setName(e.target.value)}
-                className="h-12 border-white/10 bg-white/5 pl-12 text-white placeholder:text-slate-500 focus:border-blue-500/50 focus:ring-blue-500/20"
+                className="h-12 border-white/10 bg-white/5 pl-12 text-white placeholder:text-slate-500 focus:border-[hsl(25,99%,55%)]/50 focus:ring-orange-500/20"
                 required
               />
             </div>
@@ -143,7 +111,7 @@ export default function RegisterPage() {
 
           <div className="space-y-2 text-left">
             <div className="relative group/input">
-              <div className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 transition-colors group-focus-within/input:text-blue-500">
+              <div className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 transition-colors group-focus-within/input:text-[hsl(25,99%,55%)]">
                 <Mail size={18} />
               </div>
               <Input
@@ -151,7 +119,7 @@ export default function RegisterPage() {
                 placeholder="Email Address"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                className="h-12 border-white/10 bg-white/5 pl-12 text-white placeholder:text-slate-500 focus:border-blue-500/50 focus:ring-blue-500/20"
+                className="h-12 border-white/10 bg-white/5 pl-12 text-white placeholder:text-slate-500 focus:border-[hsl(25,99%,55%)]/50 focus:ring-orange-500/20"
                 required
               />
             </div>
@@ -159,7 +127,7 @@ export default function RegisterPage() {
 
           <div className="space-y-2 text-left">
             <div className="relative group/input">
-              <div className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 transition-colors group-focus-within/input:text-blue-500">
+              <div className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 transition-colors group-focus-within/input:text-[hsl(25,99%,55%)]">
                 <Lock size={18} />
               </div>
               <Input
@@ -167,7 +135,7 @@ export default function RegisterPage() {
                 placeholder="Password"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
-                className="h-12 border-white/10 bg-white/5 pl-12 text-white placeholder:text-slate-500 focus:border-blue-500/50 focus:ring-blue-500/20"
+                className="h-12 border-white/10 bg-white/5 pl-12 text-white placeholder:text-slate-500 focus:border-[hsl(25,99%,55%)]/50 focus:ring-orange-500/20"
                 minLength={6}
                 required
               />
@@ -176,11 +144,11 @@ export default function RegisterPage() {
 
           <div className="space-y-2 text-left">
             <div className="relative group/input">
-              <div className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 transition-colors group-focus-within/input:text-blue-500">
+              <div className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 transition-colors group-focus-within/input:text-[hsl(25,99%,55%)]">
                 <Briefcase size={18} />
               </div>
               <select
-                className="flex h-12 w-full rounded-md border border-white/10 bg-white/5 pl-12 pr-4 text-sm text-white focus:border-blue-500/50 focus:outline-none focus:ring-2 focus:ring-blue-500/20"
+                className="flex h-12 w-full rounded-md border border-white/10 bg-white/5 pl-12 pr-4 text-sm text-white focus:border-[hsl(25,99%,55%)]/50 focus:outline-none focus:ring-2 focus:ring-orange-500/20"
                 value={role}
                 onChange={(e) => setRole(e.target.value as RegisterRole)}
                 required
@@ -207,7 +175,7 @@ export default function RegisterPage() {
           <Button 
             type="submit" 
             disabled={isSubmitting}
-            className="group relative h-12 w-full overflow-hidden rounded-xl bg-blue-600 font-bold text-white transition-all hover:bg-blue-500 active:scale-[0.98]"
+            className="group relative h-12 w-full overflow-hidden rounded-xl bg-[hsl(25,99%,55%)] font-bold text-white transition-all hover:bg-[hsl(25,99%,48%)] active:scale-[0.98]"
           >
             <span className="relative z-10 flex items-center justify-center gap-2">
               {isSubmitting ? "Processing..." : "Register"}
@@ -217,7 +185,7 @@ export default function RegisterPage() {
 
           <p className="text-center text-sm text-slate-500">
             Already have an account?{" "}
-            <Link to="/login" className="font-semibold text-blue-500 hover:text-blue-400 hover:underline transition-colors">
+            <Link to="/login" className="font-semibold text-[hsl(25,99%,62%)] hover:text-[hsl(25,99%,72%)] hover:underline transition-colors">
               Login
             </Link>
           </p>

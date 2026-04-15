@@ -335,15 +335,39 @@ export default function AuraChatbot({ context = "default" }: AuraChatbotProps) {
                 let projects: any[] = [];
                 let tag: ChatMessage["tag"] = "answer";
 
-                if (isEngineerChat && responseData.is_project_request && responseData.project_scope) {
+                if (typeof responseData?.message === "string" && responseData.message.trim()) {
+                    // Always prioritize direct message payloads from backend
+                    finalAnswer = responseData.message;
+                    tag = "answer";
+                    suggestions = [];
+                } else if (isEngineerChat && responseData.is_project_request && responseData.project_scope) {
                     // Handle complex Engineer Project Plan response
                     const plan = responseData;
-                    finalAnswer = `**Project Plan Generated**\n\n**Scope:** ${plan.project_scope.summary}\n\n**Timeline:** ${plan.timeline.estimated_duration}\n\n**Budget:** Labour (${plan.budget_breakdown.labour}), Materials (${plan.budget_breakdown.materials})\n\n**Top Risks:**\n${plan.risks.slice(0, 2).map((r: any) => `- ${r.risk} (${r.severity})`).join("\n")}`;
+                    const scope = plan.project_scope;
+                    const timeline = plan.timeline;
+                    
+                    let scopeText = `**Project Scope**\n${scope.summary}`;
+                    
+                    if (scope.key_deliverables && scope.key_deliverables.length > 0) {
+                        scopeText += `\n\n**Key Deliverables:**\n${scope.key_deliverables.map((d: string) => `• ${d}`).join("\n")}`;
+                    }
+                    
+                    if (scope.exclusions && scope.exclusions.length > 0) {
+                        scopeText += `\n\n**Exclusions:**\n${scope.exclusions.map((e: string) => `• ${e}`).join("\n")}`;
+                    }
+                    
+                    let timelineText = `**Timeline**\n**Estimated Duration:** ${timeline.estimated_duration}`;
+                    
+                    if (timeline.phases && timeline.phases.length > 0) {
+                        timelineText += `\n\n**Project Phases:**\n${timeline.phases.map((p: any) => `**${p.phase}** (${p.duration})\n${p.description}`).join("\n\n")}`;
+                    }
+                    
+                    finalAnswer = `${scopeText}\n\n${timelineText}`;
                     tag = "insight";
                     suggestions = ["View full plan", "Export to PDF", "Resource details"];
                 } else {
                     // Original client chat response handling
-                    finalAnswer = responseData.answer || "";
+                    finalAnswer = responseData.answer || responseData.message || "";
                     if (responseData.project_insights) {
                         finalAnswer += `\n\n**Activity Insight:**\n${responseData.project_insights}`;
                     }
@@ -356,6 +380,11 @@ export default function AuraChatbot({ context = "default" }: AuraChatbotProps) {
                     suggestions = responseData.materials?.slice(0, 3) || [];
                     projects = responseData.projects || [];
                     tag = responseData.project_insights ? "insight" : (responseData.risks?.length ? "alert" : "answer");
+                }
+
+                if (!finalAnswer.trim()) {
+                    finalAnswer = "I received your request, but no reply text was returned by the server.";
+                    tag = "alert";
                 }
 
                 const auraMsg: ChatMessage = {
@@ -387,7 +416,7 @@ export default function AuraChatbot({ context = "default" }: AuraChatbotProps) {
                 setIsTyping(false);
             }
         },
-        [token],
+        [token, user?.role],
     );
 
     const handleSend = () => sendMessage(inputValue);
